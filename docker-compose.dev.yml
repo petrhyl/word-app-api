@@ -1,0 +1,65 @@
+services:
+  word-app-api:
+    build:
+      context: ./api/
+      dockerfile: Dockerfile.dev
+      args:
+        - TMZN=Europe/Berlin
+    container_name: word-app-api
+    ports:
+      - "5000:80"
+    environment:
+      DB_NAME: ${DATABASE_NAME}
+      DB_HOST: word-app-db
+      DB_USER: ${DATABASE_USERNAME}
+      DB_PASSWD: ${DB_USER_PASSWORD}
+      EMAIL_SENDER_PSWD: ${EMAIL_SENDER_PSWD}
+      SECRET_KEY: ${APP_SECRET}
+    restart: on-failure
+    depends_on: [ word-app-database ]
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /var/www/html/word-app/api
+    volumes:
+      - ./api:/var/www/html/word-app/api
+    networks:
+      - word-app-network
+
+  word-app-database:
+    image: mysql:latest
+    container_name: word-app-db
+    ports:
+      - "3306:3306"
+    environment:
+      DATABASE_NAME: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+    command: ["--character-set-server=utf8mb4","--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - word-app-data:/var/lib/mysql
+    networks:
+      - word-app-network
+  
+  database_seed:
+    depends_on: [ word-app-database ]
+    build: ./database/
+    environment:
+      DATABASE_NAME: ${DATABASE_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      USER_PASSWORD: ${DB_USER_PASSWORD}
+      MYSQL_HOST: word-app-db
+      TMZN: Europe/Berlin
+    command: --rm
+    networks:
+      - word-app-network
+
+volumes:
+  word-app-data:
+
+networks:
+  word-app-network:
+    name: word-app-network
+    driver: bridge

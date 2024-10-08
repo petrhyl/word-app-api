@@ -1,0 +1,3 @@
+[submodule "src/app"]
+	path = src/app
+	url = https://github.com/petrhyl/php-web-api.git

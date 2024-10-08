@@ -1,0 +1,48 @@
+{
+    "name": "kykil/word-app",
+    "description": "Application for learning foreign words",
+    "authors": [
+        {
+            "name": "Kykil"
+        }
+    ],
+    "version": "1.0.0",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "./",
+            "WebApiCore\\": "app/",
+            "WebApiCore\\Http\\": "app/http",
+            "WebApiCore\\Routes\\": "app/routes",
+            "WebApiCore\\Routes\\Callables\\": "app/routes/callables",
+            "WebApiCore\\Container\\": "app/container/",
+            "WebApiCore\\Util\\": "app/util/",
+            "WebApiCore\\Interfaces\\": "app/interfaces",
+            "WebApiCore\\Exceptions\\": "app/exceptions",
+            "config\\": "config",
+            "endpoints\\": "endpoints",
+            "endpoints\\user\\": "endpoints/user",
+            "endpoints\\vocabulary\\": "endpoints/vocabulary",
+            "models\\": "models",
+            "models\\email\\": "models/email",
+            "models\\domain\\": "models/domain",
+            "models\\domain\\user\\": "models/domain/user",
+            "models\\domain\\vocabulary\\": "models/domain/vocabulary",
+            "models\\request\\": "models/request",
+            "models\\response\\": "models/response",
+            "repository\\": "repository",
+            "repository\\user\\": "repository/user",
+            "repository\\vocabulary\\": "repository/vocabulary",
+            "services\\": "services",
+            "services\\user\\": "services/user",
+            "services\\vocabulary\\": "services/vocabulary",
+            "validators\\": "validators",
+            "validators\\common\\": "validators/common",
+            "middlewares\\": "middlewares",
+            "mapping\\": "mapping",
+            "utils\\": "utils"
+        }
+    }
+}

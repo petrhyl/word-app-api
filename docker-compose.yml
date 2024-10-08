@@ -1,0 +1,50 @@
+services:
+  blog-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TMZN: Europe/Berlin
+        APP_DOMAIN: ${APP_DOMAIN}
+    container_name: blog-api
+    ports:
+      - "5000:80"
+    env_file: .env
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD}
+      EMAIL_SENDER_PSWD: ${EMAIL_SENDER_PSWD}
+      APP_SECRET: ${APP_SECRET}
+    restart: on-failure
+    depends_on: [ blog-database ]
+
+  blog-database:
+    image: mysql:latest
+    container_name: blog-db
+    ports:
+      - "3306:3306"
+    env_file: .env
+    environment:
+      DATABASE_NAME: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+    command:
+      [ "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci" ]
+
+  database_seed:
+    depends_on: [ blog-database ]
+    build: ./database/
+    env_file: .env
+    environment:
+      DATABASE_NAME: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+      MYSQL_ROOT: root
+      MYSQL_USER: ${DB_USER}
+      USER_PASSWORD: ${DB_USER_PASSWORD}
+      MYSQL_HOST: ${DB_HOST}
+      MYSQL_PORT: ${DB_PORT}
+      TMZN: Europe/Berlin
+    command: [ "--rm" ]
