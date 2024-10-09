@@ -46,7 +46,9 @@ class VocabularyRepository
         return $this->getUserVocabulary($userId, $language, $query, $limit);
     }
 
-
+    /**
+     * @return VocabularyItem[]
+     */
     private function getUserVocabulary(int $userId, string $language, string $query, int $limit): array
     {
         $stmt = $this->conn->prepare($query);
