@@ -1,12 +1,12 @@
 services:
-  blog-api:
+  word-app-api:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         TMZN: Europe/Berlin
         APP_DOMAIN: ${APP_DOMAIN}
-    container_name: blog-api
+    container_name: word-app-api
     ports:
       - "5000:80"
     env_file: .env
@@ -19,11 +19,11 @@ services:
       EMAIL_SENDER_PSWD: ${EMAIL_SENDER_PSWD}
       APP_SECRET: ${APP_SECRET}
     restart: on-failure
-    depends_on: [ blog-database ]
+    depends_on: [ word-app-database ]
 
-  blog-database:
+  word-app-database:
     image: mysql:latest
-    container_name: blog-db
+    container_name: word-app-db
     ports:
       - "3306:3306"
     env_file: .env
@@ -35,7 +35,7 @@ services:
       [ "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci" ]
 
   database_seed:
-    depends_on: [ blog-database ]
+    depends_on: [ word-app-database ]
     build: ./database/
     env_file: .env
     environment:
@@ -48,3 +48,8 @@ services:
       MYSQL_PORT: ${DB_PORT}
       TMZN: Europe/Berlin
     command: [ "--rm" ]
+
+networks:
+  word-app-network:
+    name: word-app-network
+    driver: bridge
