@@ -4,6 +4,7 @@ namespace mapping;
 
 use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
+use models\request\UpdateVocabularyItemRequest;
 use models\response\UserVocabulary;
 
 class VocabularyMapper
@@ -41,7 +42,7 @@ class VocabularyMapper
      * @param CreateVocabularyRequest $request
      * @return VocabularyItem[]
      */
-    public static function mapToVocabularyItems(CreateVocabularyRequest $request, int $userId) : array {
+    public static function mapCreateRequestToVocabularyItems(CreateVocabularyRequest $request, int $userId) : array {
         $items = [];
 
         foreach ($request->vocabularyItems as $requestItem) {
@@ -57,5 +58,18 @@ class VocabularyMapper
         } 
 
         return $items;
+    }
+
+    public static function mapUpdateRequestToVocabularyItem(UpdateVocabularyItemRequest $request, int $id, int $userId) : VocabularyItem {
+        $item = new VocabularyItem();
+        $item->Id = $id;
+        $item->UserId = $userId;
+        $item->Value = $request->word;
+        $item->Language = $request->language;
+        $item->IsLearned = $request->isLearned;
+        $item->CorrectAnswers = $request->correctAnswers;
+        $item->Translations = implode(';', $request->translations);
+
+        return $item;
     }
 }

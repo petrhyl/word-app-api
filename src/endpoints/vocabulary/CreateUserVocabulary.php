@@ -5,7 +5,6 @@ namespace endpoints\vocabulary;
 use endpoints\BaseEndpoint;
 use models\request\CreateVocabularyRequest;
 use services\vocabulary\VocabularyService;
-use utils\Utils;
 use validators\vocabulary\CreateVocabularyRequestValidator;
 
 class CreateUserVocabulary extends BaseEndpoint

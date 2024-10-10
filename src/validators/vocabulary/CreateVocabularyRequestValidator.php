@@ -3,7 +3,6 @@
 namespace validators\vocabulary;
 
 use utils\Constants;
-use utils\Utils;
 use validators\common\Validator;
 
 class CreateVocabularyRequestValidator extends Validator{

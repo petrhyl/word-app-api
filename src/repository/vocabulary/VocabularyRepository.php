@@ -46,25 +46,16 @@ class VocabularyRepository
         return $this->getUserVocabulary($userId, $language, $query, $limit);
     }
 
-    /**
-     * @return VocabularyItem[]
-     */
-    private function getUserVocabulary(int $userId, string $language, string $query, int $limit): array
+    public function getVocabularyItem(int $id): VocabularyItem | null
     {
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindValue(':usid', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':lang', $language, PDO::PARAM_STR);
-        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt = $this->conn->prepare(self::GET_WORD_QUERY . " WHERE Id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 
         $stmt->execute();
 
-        $result = $stmt->fetchAll(PDO::FETCH_CLASS, VocabularyItem::class);
+        $result = $stmt->fetchObject(VocabularyItem::class);
 
-        if (empty($result)) {
-            return [];
-        }
-
-        return $result;
+        return empty($result) ? null : $result;
     }
 
     /**
@@ -111,18 +102,39 @@ class VocabularyRepository
     public function updateVocabularyItem(VocabularyItem $vocabularyItem): bool
     {
         $command = "UPDATE Wordapp_Vocabularies 
-        SET IsLearned = :lear, CorrectAnswers = :cor, UpdatedAt = :up 
+        SET Translations = :trans, IsLearned = :lear, CorrectAnswers = :cor, UpdatedAt = :up 
         WHERE Id = :id";
 
         $stmt = $this->conn->prepare($command);
 
+        $stmt->bindValue(':trans', $vocabularyItem->Translations, PDO::PARAM_STR);
         $stmt->bindValue(':lear', $vocabularyItem->IsLearned, PDO::PARAM_BOOL);
         $stmt->bindValue(':cor', $vocabularyItem->CorrectAnswers, PDO::PARAM_INT);
         $stmt->bindValue(':up', $vocabularyItem->databaseFormattedUpdatedAt(), PDO::PARAM_STR);
         $stmt->bindValue(':id', $vocabularyItem->Id, PDO::PARAM_INT);
 
+        return $stmt->execute();
+    }
+
+
+    /**
+     * @return VocabularyItem[]
+     */
+    private function getUserVocabulary(int $userId, string $language, string $query, int $limit): array
+    {
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':usid', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':lang', $language, PDO::PARAM_STR);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+
         $stmt->execute();
 
-        return $stmt->rowCount() > 0;
+        $result = $stmt->fetchAll(PDO::FETCH_CLASS, VocabularyItem::class);
+
+        if (empty($result)) {
+            return [];
+        }
+
+        return $result;
     }
 }

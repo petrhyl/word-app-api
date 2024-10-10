@@ -2,14 +2,16 @@
 
 namespace services\vocabulary;
 
+use DateTime;
 use Exception;
 use mapping\VocabularyMapper;
 use models\request\CreateVocabularyRequest;
 use models\request\GetVocabularyQuery;
+use models\request\UpdateVocabularyItemRequest;
 use models\responces\UserVocabulary;
 use repository\vocabulary\VocabularyRepository;
 use services\user\auth\AuthService;
-use utils\Utils;
+use WebApiCore\Exceptions\ApplicationException;
 
 class VocabularyService
 {
@@ -40,15 +42,50 @@ class VocabularyService
 
     public function createVocabulary(CreateVocabularyRequest $request): void
     {
-        Utils::dd($request);
         $userId = $this->authService->getAuthenticatedUserId();
-        
-        $items = VocabularyMapper::mapToVocabularyItems($request, $userId);
 
-        $result = $this->vocabularyRepository->createVocabulary($items);
+        $items = VocabularyMapper::mapCreateRequestToVocabularyItems($request, $userId);
+
+        try {
+            $result = $this->vocabularyRepository->createVocabulary($items);
+        } catch (\Throwable $th) {
+            if ($th->getCode() === 23000) {
+                throw new ApplicationException("Provided word already exists in user's vocabulary", 409);
+            } else {
+                throw $th;
+            }
+        }
 
         if ($result === false) {
             throw new Exception("Failed to create user's vocabulary");
+        }
+    }
+
+    public function updateVocabularyItem(UpdateVocabularyItemRequest $request, int $id): void
+    {        
+        $existingItem = $this->vocabularyRepository->getVocabularyItem($id);
+        
+        if ($existingItem === null) {
+            throw new ApplicationException("Vocabulary item not found", 404);
+        }
+        
+        $userId = $this->authService->getAuthenticatedUserId();
+
+        if ($existingItem->UserId !== $userId) {
+            throw new ApplicationException("Vocabulary item not found", 404);
+        }
+
+        if ($existingItem->Value !== $request->word) {
+            throw new ApplicationException("Not allowed to change value of vacabulary item.", 400);
+        }
+
+        $item = VocabularyMapper::mapUpdateRequestToVocabularyItem($request, $id, $userId);
+        $item->setUpdatedAt(new DateTime());
+
+        $result = $this->vocabularyRepository->updateVocabularyItem($item);
+
+        if ($result === false) {
+            throw new Exception("Failed to update vocabulary item");
         }
     }
 }
