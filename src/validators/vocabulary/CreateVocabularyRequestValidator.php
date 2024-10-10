@@ -31,7 +31,7 @@ class CreateVocabularyRequestValidator extends Validator{
                 $this->addInvalidProperty("word", "Word can not be empty.");
             }
 
-            if (empty($vocabularyItem->translations) || $vocabularyItem->translations[0] === "") {
+            if (empty($vocabularyItem->translations)) {
                 $this->addInvalidProperty("translations", "Translations of a word are not provided.");
             }
 
@@ -40,6 +40,14 @@ class CreateVocabularyRequestValidator extends Validator{
             }
 
             $this->throwExceptionIfAnyError();
+
+            foreach ($vocabularyItem->translations as $translation) {
+                if (empty($translation)) {
+                    $this->addInvalidProperty("translations", "Translation can not be empty.");
+
+                    $this->throwExceptionIfAnyError();
+                }
+            }
         }
 
         $this->throwExceptionIfAnyError();
