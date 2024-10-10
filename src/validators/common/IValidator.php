@@ -2,6 +2,8 @@
 
 namespace validators\common;
 
+use models\validator\ValidationError;
+
 interface IValidator
 {
     /**
@@ -9,5 +11,5 @@ interface IValidator
      */
     public function validate($object): void;
 
-    public function getErrors(): array;
+    public function getErrors(): ValidationError;
 }

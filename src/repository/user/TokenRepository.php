@@ -26,7 +26,7 @@ class TokenRepository
 
         $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
         $stmt->bindValue(':token', $tokenHashed, PDO::PARAM_STR);
-        $stmt->bindValue(':expire', $expiry->format(Constants::MYSQL_DATETIME_FORMAT), PDO::PARAM_STR);
+        $stmt->bindValue(':expire', $expiry->format(Constants::DATABASE_DATETIME_FORMAT), PDO::PARAM_STR);
 
         $stmt->execute();
 

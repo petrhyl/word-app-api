@@ -50,14 +50,17 @@ class AuthService
     {
         $user->PasswordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        $user->VerificationKey = $this->createVerificationKey($user->Email);
         $user = $this->userRepository->create($user);
 
         if ($user === null) {
             throw new Exception("Failed to create user in database", 101);
         }
 
-        return $this->createTokensAndAssignThemToUser($user);
+        if ($user->IsVerified) {
+            return $this->createTokensAndAssignThemToUser($user);
+        }
+
+        return $user;
     }
 
     /**
@@ -191,7 +194,7 @@ class AuthService
 
     private function createTokensAndAssignThemToUser(User $user): User
     {
-        $secondsToExpire = time() + 600;
+        $secondsToExpire = time() + 1200;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
@@ -206,7 +209,7 @@ class AuthService
         $accessToken->Value = $token;
         $accessToken->ExpireIn = $secondsToExpire;
 
-        $secondsToExpire += 604_800;
+        $secondsToExpire += 15_552_000;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,

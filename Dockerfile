@@ -11,7 +11,7 @@ FROM php:8.2-apache
 ARG TMZN=Europe/Berlin
 ARG APP_DOMAIN
 
-WORKDIR /var/www/html/blog/api
+WORKDIR /var/www/html/word-app/api
 
 # set time zone
 RUN apt-get update && apt-get install -y vim libmariadb-dev tzdata

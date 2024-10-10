@@ -5,14 +5,18 @@ namespace services\user;
 use DateTime;
 use Exception;
 use mapping\UserMapper;
+use models\domain\user\AuthToken;
 use models\domain\user\User;
 use models\email\EmailMessage;
+use models\RegistrationConfiguration;
 use models\request\ChangePasswordRequest;
 use models\request\LoginRequest;
 use models\request\LogoutRequest;
 use models\request\RefreshLoginRequest;
 use models\request\RegisterRequest;
 use models\response\AuthResponse;
+use models\response\RegisterResponse;
+use models\response\RegisterResponseMessage;
 use repository\user\UserRepository;
 use services\user\auth\AuthService;
 use WebApiCore\Exceptions\ApplicationException;
@@ -20,7 +24,7 @@ use WebApiCore\Exceptions\ApplicationException;
 class UserService
 {
     public function __construct(
-        private readonly string $verificationClientLink,
+        private readonly RegistrationConfiguration $registrationConfiguration,
         private readonly AuthService $authService,
         private readonly UserRepository $userRepository,
         private readonly EmailSenderService $emailSender
@@ -41,6 +45,10 @@ class UserService
 
         if ($user === null) {
             throw new ApplicationException("Invalid user's e-mail or password.", 422);
+        }
+
+        if ($user->IsVerified === false) {
+            throw new ApplicationException("User's e-mail address is not verified yet", 403);            
         }
 
         $user = $this->authService->login($user, $request->password);
@@ -65,22 +73,38 @@ class UserService
         $this->authService->logout($user);
     }
 
-    public function register(RegisterRequest $request): AuthResponse
+
+    public function register(RegisterRequest $request): RegisterResponse
     {
         $existingUser = $this->userRepository->getByEmail($request->email);
 
         if ($existingUser !== null) {
             throw new ApplicationException("User with provided e-mail is already registered.", 422);
         }
-
+        
         $user = UserMapper::mapRegisterRequestToUser($request);
-        $user->IsVerified = false;
-        $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
+        
+        if ($this->registrationConfiguration->IsEmailVerificationRequired) {
+            $user->IsVerified = false;
+            $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
+        }else{
+            $user->IsVerified = true;
+        }
+
         $user = $this->authService->registerValidUser($user, $request->password);
+        
+        $response = new RegisterResponse();
+        
+        if (!$this->registrationConfiguration->IsEmailVerificationRequired && $user->IsVerified) {
+            $response->auth = UserMapper::mapToAuthResponse($user);
+        }else{
+            $this->sendVerificationEmail($user);
+            $response->registration = new RegisterResponseMessage();
+            $response->registration->userEmail = $user->Email;
+            $response->registration->message = "User was successfully registered. Please verify your e-mail address.";
+        }
 
-        $this->sendVerificationEmail($user);
-
-        return UserMapper::mapToAuthResponse($user);
+        return $response;
     }
 
     public function verify(string $verificationKey): void
@@ -123,8 +147,11 @@ class UserService
             throw new ApplicationException("Not able to authorize user", 401);
         }
 
-        $user->AccessToken = $request->accessToken;
-        $user->RefreshToken = $request->refreshToken;
+        $user->AccessToken = new AuthToken();
+        $user->AccessToken->Value = $request->accessToken;
+
+        $user->RefreshToken = new AuthToken();
+        $user->RefreshToken->Value = $request->refreshToken;
 
         $user = $this->authService->refreshTokens($user);
 
@@ -151,22 +178,24 @@ class UserService
 
     private function sendVerificationEmail(User $user, string $recipientName = ''): void
     {
-        $verificationLink = $this->verificationClientLink . $user->VerificationKey;
+        $verificationLink = $this->registrationConfiguration->VerificationClientLink . $user->VerificationKey;
 
         $message = new EmailMessage();
         $message->subject = "E-mail verification";
         $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px; display: flex; flex-direction: column; row-gap: 10px;\">
+            "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
         <span>Hello from Word App&nbsp;</span>
         <span style=\"font-size: 0.9em\">Vocabulary learning</span>
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
-        <p>Please, verify your e-mail addres to fully enjoy our web application.</p>
-        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a>.</p>";
+        <p>Please, verify your e-mail addres to fully enjoy our web application.</p>        
+        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a>.<br /></p>
+        <p style=\"font-size: 0.9em\">If this request wasn't made by you, please disregard or delete this email.</p>";
         $message->plainMessage = "Hello from Word App\n 
         Thank you for your registration on our web site.\n
         Please, verify your e-mail addres to fully enjoy our web about fashion.
-        To verify your e-mail address please use this link: {$verificationLink}";
+        To verify your e-mail address please use this link: {$verificationLink}\n
+        If this request wasn't made by you, please ignore or delete this email.";
         $message->recipientAddress = $user->Email;
         $message->recipientName = $recipientName;
 
@@ -178,17 +207,19 @@ class UserService
         $message = new EmailMessage();
         $message->subject = "E-mail verified";
         $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px; display: flex; flex-direction: column; row-gap: 10px;\">
+            "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
         <span>Hello from Word App&nbsp;</span>
         <span style=\"font-size: 0.9em\">Vocabulary learning</span>
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Your e-mail address was successfully verified.</p>
-        <p>We hope you will like our web application for vocabulary learning.</p>";
+        <p>We hope you will like our web application for vocabulary learning.<br /></p>        
+        <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>";
         $message->plainMessage = "Hello from Feelofalai Fashion Blog\n 
         Thank you for your registration/subscription on our web site.\n
         Your e-mail address was successfully verified.
-        We hope you will like our web application for vocabulary learning.\n\n";
+        We hope you will like our web application for vocabulary learning.\n\n
+        If this email doesn't belong to you, please ignore or delete it.";
         $message->recipientAddress = $user->Email;
         $message->recipientName = $recipientName;
 

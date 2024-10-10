@@ -1,6 +1,6 @@
 <?php
 
-namespace validators;
+namespace validators\user;
 
 use validators\common\Validator;
 
@@ -19,8 +19,7 @@ class VerificationKeyValidator extends Validator
     public function validate($object): void
     {
         if (empty($object) || strlen($object) !== self::HASH_LENGTH) {
-            $this->addInvalidPropertyName('verificationKey');
-            $this->addMessage('Invalid verification key value.');
+            $this->addInvalidProperty('verificationKey', 'Invalid verification key value.');
         }
 
         $this->throwExceptionIfAnyError();

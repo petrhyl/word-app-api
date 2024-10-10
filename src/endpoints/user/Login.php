@@ -5,7 +5,7 @@ namespace endpoints\user;
 use endpoints\BaseEndpoint;
 use models\request\LoginRequest;
 use services\user\UserService;
-use validators\LoginRequestValidator;
+use validators\user\LoginRequestValidator;
 
 class Login extends BaseEndpoint
 {

@@ -5,6 +5,7 @@ namespace config;
 use Exception;
 use models\DbConfiguration;
 use models\email\EmailServerConfiguration;
+use models\RegistrationConfiguration;
 use repository\user\TokenRepository;
 use repository\user\UserRepository;
 use services\EncryptionService;
@@ -73,12 +74,12 @@ class Bootstrap
             )
         );
 
-        $links = Configuration::getConfiguration(['VERIFICATION_LINK']);
+        $registationConf = self::getRegistrationConfiguration();
 
         $builder->Container->bindScoped(
             UserService::class,
             fn(InstanceProvider $instanceProvider) => new UserService(
-                $links['VERIFICATION_LINK'],
+                $registationConf,
                 $instanceProvider->get(AuthService::class),
                 $instanceProvider->get(UserRepository::class),
                 $instanceProvider->get(EmailSenderService::class)
@@ -115,6 +116,22 @@ class Bootstrap
         $conf->SenderName = $confArray['EMAIL_SENDER_NM'];
         $conf->SenderPassword = $confArray['EMAIL_SENDER_PSWD'];
         $conf->Port = $confArray['EMAIL_PORT'];
+
+        return $conf;
+    }
+
+    private static function getRegistrationConfiguration() : RegistrationConfiguration {
+        $confArray = Configuration::getConfiguration(
+            ['VERIFICATION_LINK', 'EMAIL_VERIFICATION'],
+        );
+
+        if (count($confArray) < 2) {
+            throw new Exception('Not able to get registration configuration from environment.');
+        }
+
+        $conf = new RegistrationConfiguration();
+        $conf->VerificationClientLink = $confArray['VERIFICATION_LINK'];
+        $conf->IsEmailVerificationRequired = $confArray['EMAIL_VERIFICATION'];
 
         return $conf;
     }

@@ -45,4 +45,11 @@ class ValidatorUtils
     {
         return preg_match(self::PHONE_REGEX, $value) === 1;
     }
+
+    public static function isPasswordValid(string $password): bool
+    {
+        $pattern = '/^(?=.*[A-Z])(?=.*\d).{8,}$/';
+
+        return preg_match($pattern, $password) === 1;
+    }
 }

@@ -2,12 +2,12 @@ FROM php:8.2-apache
 
 ARG TMZN
 
-WORKDIR /var/www/html/blog/api
+WORKDIR /var/www/html/word-app/api
 
 RUN apt-get update && apt-get install -y vim libmariadb-dev tzdata
 RUN ln -snf /usr/share/zoneinfo/$TMZN /etc/localtime && echo $TMZN > /etc/timezone
 RUN docker-php-ext-install pdo pdo_mysql
-RUN a2enmod rewrite && a2enconf headers
+RUN a2enmod rewrite
 RUN echo "ServerName localhost" >> /etc/apache2/conf-available/servername.conf && \
     a2enconf servername
 

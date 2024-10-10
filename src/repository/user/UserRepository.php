@@ -27,14 +27,14 @@ class UserRepository
     public function create(User $user): ?User
     {
         $command = "INSERT INTO Wordapp_Users (Email, Name, PasswordHash, IsVerified, VerificationKey, Language)
-        VALUES (:email, :name, :psswd, :phone, :isver, :verkey, :lang)";
+        VALUES (:email, :name, :psswd, :isver, :verkey, :lang)";
 
         $stmt = $this->conn->prepare($command);
-        $stmt->bindValue(':email', $user->Email, PDO::PARAM_INT);
+        $stmt->bindValue(':email', $user->Email, PDO::PARAM_STR);
         $stmt->bindValue(':name', $user->Name, PDO::PARAM_STR);
         $stmt->bindValue(':psswd', $user->PasswordHash, PDO::PARAM_STR);
         $stmt->bindValue(':isver', $user->IsVerified, PDO::PARAM_BOOL);
-        $stmt->bindValue(':verkey', $user->VerificationKey, PDO::PARAM_STR);
+        $stmt->bindValue(':verkey', $user->VerificationKey, PDO::PARAM_STR | PDO::PARAM_NULL);
         $stmt->bindValue(':lang', $user->Language, PDO::PARAM_STR);
 
         $stmt->execute();
@@ -129,7 +129,7 @@ class UserRepository
         $user->VerificationKey = $userData['uskey'];
         $user->Language = $userData['lang'];
         $user->UpdatedAt = new DateTime($userData['usup']);
-        $user->CreatedAt = new DateTime($userData['uscr']);
+        $user->setCreatedAt(new DateTime($userData['uscr']));
 
         return $user;
     }

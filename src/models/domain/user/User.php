@@ -20,6 +20,6 @@ class User extends DomainEntity
     
     public function mysqlFormattedUpdatedAt(): string
     {
-        return $this->UpdatedAt->format(Constants::MYSQL_DATETIME_FORMAT);
+        return $this->UpdatedAt->format(Constants::DATABASE_DATETIME_FORMAT);
     }
 }

@@ -5,7 +5,7 @@ namespace endpoints\user;
 use endpoints\BaseEndpoint;
 use models\request\RegisterRequest;
 use services\user\UserService;
-use validators\RegisterRequestValidator;
+use validators\user\RegisterRequestValidator;
 
 class Register extends BaseEndpoint
 {
@@ -21,6 +21,6 @@ class Register extends BaseEndpoint
 
         $response = $this->userService->register($payload);
 
-        $this->respondAndDie(["auth" => $response], 201);
+        $this->respondAndDie($response, 201);
     }
 }

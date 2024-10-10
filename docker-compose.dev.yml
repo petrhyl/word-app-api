@@ -1,7 +1,8 @@
 services:
   word-app-api:
+    env_file: .env
     build:
-      context: ./api/
+      context: .
       dockerfile: Dockerfile.dev
       args:
         - TMZN=Europe/Berlin
@@ -9,9 +10,9 @@ services:
     ports:
       - "5000:80"
     environment:
-      DB_NAME: ${DATABASE_NAME}
+      DB_NAME: ${DB_NAME}
       DB_HOST: word-app-db
-      DB_USER: ${DATABASE_USERNAME}
+      DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_USER_PASSWORD}
       EMAIL_SENDER_PSWD: ${EMAIL_SENDER_PSWD}
       SECRET_KEY: ${APP_SECRET}
@@ -28,13 +29,14 @@ services:
       - word-app-network
 
   word-app-database:
+    env_file: .env
     image: mysql:latest
     container_name: word-app-db
     ports:
       - "3306:3306"
     environment:
-      DATABASE_NAME: ${DATABASE_NAME}
-      MYSQL_USER: ${DATABASE_USERNAME}
+      DATABASE_NAME: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
       MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
     command: ["--character-set-server=utf8mb4","--collation-server=utf8mb4_unicode_ci"]
     volumes:
@@ -43,14 +45,17 @@ services:
       - word-app-network
   
   database_seed:
+    env_file: .env
     depends_on: [ word-app-database ]
     build: ./database/
     environment:
-      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_NAME: ${DB_NAME}
+      MYSQL_ROOT: root
       MYSQL_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
-      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_USER: ${DB_USER}
       USER_PASSWORD: ${DB_USER_PASSWORD}
       MYSQL_HOST: word-app-db
+      MYSQL_PORT: ${DB_PORT}
       TMZN: Europe/Berlin
     command: --rm
     networks:

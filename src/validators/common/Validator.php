@@ -2,50 +2,43 @@
 
 namespace validators\common;
 
+use models\validator\InvalidPropertyError;
+use models\validator\ValidationError;
 use WebApiCore\Exceptions\ApplicationException;
 
 abstract class Validator implements IValidator
 {
-    protected array $errors;
+    private ValidationError $error;
 
-    protected const MSG_KEY = "validationMessage";
-    protected const PROP_NAME = "invalidProperties";
 
     protected function __construct()
     {
-        $this->errors[self::MSG_KEY] = "";
-        $this->errors[self::PROP_NAME] = "";
+        $this->error = new ValidationError();
     }
 
-    public function getErrors(): array
+    public function getErrors(): ValidationError
     {
-        return $this->errors;
+        return $this->error;
     }
 
     public function throwExceptionIfAnyError(): void
     {
-        if (empty($this->errors[self::MSG_KEY]) && empty($this->errors[self::PROP_NAME]) && count($this->errors) < 3) {
-            return;
+        if (!empty($this->error->invalidProperties) || !empty($this->error->validationMessages)) {
+            throw new ApplicationException("Invalid request structure's value(s).", 422, 100, ['validation' => [ 'properties' => $this->error->invalidProperties], ['messages' => $this->error->validationMessages]]);
         }
-
-        throw new ApplicationException("Invalid request body value(s).", 422, 100, $this->errors);
     }
 
     protected function addMessage(string $message): void
     {
-        if (!empty($this->errors[self::MSG_KEY])) {
-            $this->errors[self::MSG_KEY] .= " ";
-        }
-
-        $this->errors[self::MSG_KEY] .= $message;
+        $this->error->validationMessages[] = $message;
     }
 
-    protected function addInvalidPropertyName(string $propertyName): void
+    protected function addInvalidProperty(string $propertyName, string $errorDetails): void
     {
-        if (!empty($this->errors[self::PROP_NAME])) {
-            $this->errors[self::PROP_NAME] .= ", ";
-        }
-
-        $this->errors[self::PROP_NAME] .= $propertyName;
+        $invalidProperty = new InvalidPropertyError();
+        $invalidProperty->propertyName = $propertyName;
+        $invalidProperty->details = $errorDetails;
+        
+        $this->error->invalidProperties[] = $invalidProperty;
     }
 }

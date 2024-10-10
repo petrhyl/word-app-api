@@ -51,11 +51,11 @@ class ErrorHandler
 
     public static function logErrors(array $errors): void
     {
-        $filename = Constants::rootDir() . '/log/log_' . date('ymd') . '.json';
+        $filename = Constants::rootDir() . '/logs/log_' . date('ymd') . '.json';
         $file = fopen($filename, 'a');
 
         if ($file) {
-            $data = json_encode($errors, JSON_PRETTY_PRINT);
+            $data = json_encode($errors, JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
             $data .= ',';
 
             $attempts = 0;

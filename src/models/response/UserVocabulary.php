@@ -1,6 +1,6 @@
 <?php
 
-namespace models\responces;
+namespace models\response;
 
 class UserVocabulary
 {

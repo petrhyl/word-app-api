@@ -2,11 +2,14 @@
 
 namespace services\vocabulary;
 
+use Exception;
 use mapping\VocabularyMapper;
-use models\requests\GetVocabularyRequest;
+use models\request\CreateVocabularyRequest;
+use models\request\GetVocabularyQuery;
 use models\responces\UserVocabulary;
 use repository\vocabulary\VocabularyRepository;
 use services\user\auth\AuthService;
+use utils\Utils;
 
 class VocabularyService
 {
@@ -18,20 +21,34 @@ class VocabularyService
     /**
      * @return UserVocabulary[]
      */
-    public function getVocabulary(GetVocabularyRequest $request): array
+    public function getVocabulary(GetVocabularyQuery $query): array
     {
         $userId = $this->authService->getAuthenticatedUserId();
 
-        $words = $this->vocabularyRepository->getUserUnlearnedVocabulary($userId, $request->language, $request->limit);
+        $words = $this->vocabularyRepository->getUserUnlearnedVocabulary($userId, $query->lang, $query->limit);
         $wordsCount = count($words);
 
-        if ($wordsCount < $request->limit) {
-            $learnedWords = $this->vocabularyRepository->getUserLearnedVocabulary($userId, $request->language, $request->limit - $wordsCount);
+        if ($wordsCount < $query->limit) {
+            $learnedWords = $this->vocabularyRepository->getUserLearnedVocabulary($userId, $query->lang, $query->limit - $wordsCount);
             $words = array_merge($words, $learnedWords);
         }
 
         $vocabulary = VocabularyMapper::mapToUserVocabularyArray($words);
 
         return $vocabulary;
+    }
+
+    public function createVocabulary(CreateVocabularyRequest $request): void
+    {
+        Utils::dd($request);
+        $userId = $this->authService->getAuthenticatedUserId();
+        
+        $items = VocabularyMapper::mapToVocabularyItems($request, $userId);
+
+        $result = $this->vocabularyRepository->createVocabulary($items);
+
+        if ($result === false) {
+            throw new Exception("Failed to create user's vocabulary");
+        }
     }
 }

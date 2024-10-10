@@ -2,7 +2,7 @@ FROM php:8.2-apache
 
 ARG TMZN
 
-WORKDIR /var/www/html/blog/api
+WORKDIR /var/www/html/word-app/api
 
 RUN apt-get update && apt-get install -y vim libmariadb-dev tzdata
 RUN ln -snf /usr/share/zoneinfo/$TMZN /etc/localtime && echo $TMZN > /etc/timezone

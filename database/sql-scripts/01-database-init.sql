@@ -36,9 +36,11 @@ CREATE TABLE Wordapp_Vocabularies(
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (Id),
     UNIQUE (UserId, Value, Language),
-    INDEX idx_trans_user_id (UserId, Language)
+    INDEX idx_trans_user_id (UserId, Language, IsLearned)
 );
 
 
 ALTER TABLE Wordapp_UserLogins
+    ADD FOREIGN KEY (UserId) REFERENCES Wordapp_Users(Id) ON DELETE CASCADE;
+ALTER TABLE Wordapp_Vocabularies
     ADD FOREIGN KEY (UserId) REFERENCES Wordapp_Users(Id) ON DELETE CASCADE;

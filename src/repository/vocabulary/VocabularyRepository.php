@@ -58,18 +58,13 @@ class VocabularyRepository
 
         $stmt->execute();
 
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_CLASS, VocabularyItem::class);
 
         if (empty($result)) {
             return [];
         }
 
-        $vocabulary = [];
-        foreach ($result as $item) {
-            $vocabulary[] = $this->convertAssocArrayToVocabulary($item);
-        }
-
-        return $vocabulary;
+        return $result;
     }
 
     /**
@@ -113,20 +108,21 @@ class VocabularyRepository
         return $stmt->execute();
     }
 
-
-    private function convertAssocArrayToVocabulary(array $data): VocabularyItem
+    public function updateVocabularyItem(VocabularyItem $vocabularyItem): bool
     {
-        $vocabulary = new VocabularyItem();
-        $vocabulary->Id = $data['Id'];
-        $vocabulary->UserId = $data['UserId'];
-        $vocabulary->Value = $data['Value'];
-        $vocabulary->Translations = $data['Translations'];
-        $vocabulary->Language = $data['Language'];
-        $vocabulary->IsLearned = $data['IsLearned'];
-        $vocabulary->CorrectAnswers = $data['CorrectAnswers'];
-        $vocabulary->CreatedAt = new DateTime($data['CreatedAt']);
-        $vocabulary->UpdatedAt = new DateTime($data['UpdatedAt']);
+        $command = "UPDATE Wordapp_Vocabularies 
+        SET IsLearned = :lear, CorrectAnswers = :cor, UpdatedAt = :up 
+        WHERE Id = :id";
 
-        return $vocabulary;
+        $stmt = $this->conn->prepare($command);
+
+        $stmt->bindValue(':lear', $vocabularyItem->IsLearned, PDO::PARAM_BOOL);
+        $stmt->bindValue(':cor', $vocabularyItem->CorrectAnswers, PDO::PARAM_INT);
+        $stmt->bindValue(':up', $vocabularyItem->databaseFormattedUpdatedAt(), PDO::PARAM_STR);
+        $stmt->bindValue(':id', $vocabularyItem->Id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
     }
 }
