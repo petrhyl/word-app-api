@@ -38,28 +38,6 @@ class VocabularyMapper
         return $vocabulary;
     }
 
-    /**
-     * @param CreateVocabularyRequest $request
-     * @return VocabularyItem[]
-     */
-    public static function mapCreateRequestToVocabularyItems(CreateVocabularyRequest $request, int $userId) : array {
-        $items = [];
-
-        foreach ($request->vocabularyItems as $requestItem) {
-            $item = new VocabularyItem();
-            $item->UserId = $userId;
-            $item->Value = $requestItem->word;
-            $item->Language = $request->language;
-            $item->IsLearned = false;
-            $item->CorrectAnswers = 0;
-            $item->Translations = implode(';', $requestItem->translations);
-
-            $items[] = $item;
-        } 
-
-        return $items;
-    }
-
     public static function mapUpdateRequestToVocabularyItem(UpdateVocabularyItemRequest $request, int $id, int $userId) : VocabularyItem {
         $item = new VocabularyItem();
         $item->Id = $id;

@@ -5,10 +5,13 @@ namespace services\vocabulary;
 use DateTime;
 use Exception;
 use mapping\VocabularyMapper;
+use models\domain\language\UserLanguage;
+use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
 use models\request\GetVocabularyQuery;
 use models\request\UpdateVocabularyItemRequest;
 use models\responces\UserVocabulary;
+use repository\language\LanguageRepository;
 use repository\vocabulary\VocabularyRepository;
 use services\user\auth\AuthService;
 use WebApiCore\Exceptions\ApplicationException;
@@ -17,6 +20,7 @@ class VocabularyService
 {
     public function __construct(
         private readonly VocabularyRepository $vocabularyRepository,
+        private readonly LanguageRepository $languageRepository,
         private readonly AuthService $authService
     ) {}
 
@@ -44,8 +48,38 @@ class VocabularyService
     {
         $userId = $this->authService->getAuthenticatedUserId();
 
-        $items = VocabularyMapper::mapCreateRequestToVocabularyItems($request, $userId);
+        $items = [];
+        $userLanguages = $this->languageRepository->getUserLanguages($userId);
+        $languages = [];
 
+        foreach ($userLanguages as $lang) {
+            $languages[$lang->Code] = $lang->Code;
+        }       
+
+        foreach ($request->vocabularyItems as $requestItem) {
+            $item = new VocabularyItem();
+            $item->UserId = $userId;
+            $item->Value = $requestItem->word;
+            $item->Language = $request->language;
+            $item->IsLearned = false;
+            $item->CorrectAnswers = 0;
+            $item->Translations = implode(';', $requestItem->translations);
+
+            $items[] = $item;
+
+            if (!array_key_exists($item->Language, $languages)) {
+                $languages[$item->Language] = $item->Language;
+
+                $userLanguage = new UserLanguage();
+                $userLanguage->Code = $item->Language;
+                $userLanguage->UserId = $userId;
+                $userLanguage->CorrectAnswers = 0;
+                $userLanguage->IncorrectAnswers = 0;
+
+                $this->languageRepository->createUserLanguage($userLanguage);
+            }
+        } 
+        
         try {
             $result = $this->vocabularyRepository->createVocabulary($items);
         } catch (\Throwable $th) {

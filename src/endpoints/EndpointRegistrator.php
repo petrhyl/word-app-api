@@ -7,9 +7,7 @@ use WebApiCore\Routes\EndpointRouteBuilder;
 
 class EndpointRegistrator
 {
-    public function __construct(private readonly EndpointRouteBuilder $router)
-    {
-    }
+    public function __construct(private readonly EndpointRouteBuilder $router) {}
 
     public function registerEndpoints(): EndpointRouteBuilder
     {
@@ -22,9 +20,14 @@ class EndpointRegistrator
 
         $this->router->post('word-app/api/vocabulary', vocabulary\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->get('word-app/api/vocabulary', vocabulary\GetUserVocabulary::class, [AuthorizationMiddleware::class]);
-        $this->router->post('word-app/api/vocabulary/items/{id}', vocabulary\UpdateUserVocabularyItem::class, [AuthorizationMiddleware::class]);
+        $this->router->post(
+            'word-app/api/vocabulary/items/{id}',
+            vocabulary\UpdateUserVocabularyItem::class,
+            [AuthorizationMiddleware::class]
+        );
 
-        $this->router->post('word-app/api/vocabulary/items/{id}', languages\GetUserLanguages::class, [AuthorizationMiddleware::class]);
+        $this->router->get('word-app/api/languages', languages\GetAllowedLanguages::class);
+        $this->router->get('word-app/api/languages/user', languages\GetUserLanguages::class, [AuthorizationMiddleware::class]);
 
         return $this->router;
     }
