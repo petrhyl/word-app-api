@@ -2,9 +2,8 @@
 
 namespace models\request;
 
-class RefreshLoginRequest
+class RefreshTokensRequest
 {
-    public int $userId;
     public string $accessToken;
     public string $refreshToken;
 }

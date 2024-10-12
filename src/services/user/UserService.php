@@ -12,11 +12,13 @@ use models\RegistrationConfiguration;
 use models\request\ChangePasswordRequest;
 use models\request\LoginRequest;
 use models\request\LogoutRequest;
-use models\request\RefreshLoginRequest;
+use models\request\RefreshTokensRequest;
 use models\request\RegisterRequest;
 use models\response\AuthResponse;
 use models\response\RegisterResponse;
 use models\response\RegisterResponseMessage;
+use models\response\TokenResponse;
+use models\response\UserResponse;
 use repository\user\UserRepository;
 use services\user\auth\AuthService;
 use WebApiCore\Exceptions\ApplicationException;
@@ -29,6 +31,16 @@ class UserService
         private readonly UserRepository $userRepository,
         private readonly EmailSenderService $emailSender
     ) {}
+
+    public function getAuthenticatedUser() : UserResponse {
+        $user = $this->authService->getAuthenticatedUser();
+
+        if ($user === null) {
+            throw new ApplicationException("User is not authenticated", 401);
+        }
+
+        return UserMapper::mapToUserResponse($user);
+    }
 
     /**
      * @return \models\response\AuthResponse|null returns response object if user's credentials are valid otherwise returns `null`
@@ -48,7 +60,7 @@ class UserService
         }
 
         if ($user->IsVerified === false) {
-            throw new ApplicationException("User's e-mail address is not verified yet", 403);            
+            throw new ApplicationException("User's e-mail address is not verified yet", 403);
         }
 
         $user = $this->authService->login($user, $request->password);
@@ -81,23 +93,23 @@ class UserService
         if ($existingUser !== null) {
             throw new ApplicationException("User with provided e-mail is already registered.", 422);
         }
-        
+
         $user = UserMapper::mapRegisterRequestToUser($request);
-        
+
         if ($this->registrationConfiguration->IsEmailVerificationRequired) {
             $user->IsVerified = false;
             $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
-        }else{
+        } else {
             $user->IsVerified = true;
         }
 
         $user = $this->authService->registerValidUser($user, $request->password);
-        
+
         $response = new RegisterResponse();
-        
+
         if (!$this->registrationConfiguration->IsEmailVerificationRequired && $user->IsVerified) {
             $response->auth = UserMapper::mapToAuthResponse($user);
-        }else{
+        } else {
             $this->sendVerificationEmail($user);
             $response->registration = new RegisterResponseMessage();
             $response->registration->userEmail = $user->Email;
@@ -127,7 +139,7 @@ class UserService
         $this->sendVerifiedEmail($user);
     }
 
-    public function refreshLogin(RefreshLoginRequest $request): AuthResponse
+    public function refreshTokens(RefreshTokensRequest $request): TokenResponse
     {
         $userId = $this->authService->getClaimFromToken(AuthService::USER_ID_CLAIM, $request->accessToken);
 
@@ -135,13 +147,19 @@ class UserService
             throw new ApplicationException("User is already authorized", 400);
         }
 
-        $areTokensValid = $this->authService->areTokensValid($request->refreshToken, $request->accessToken, $request->userId);
+        $areTokensValid = $this->authService->areTokensValid($request->refreshToken, $request->accessToken);
 
         if (!$areTokensValid) {
             throw new ApplicationException("Not able to authorize user", 401);
         }
 
-        $user = $this->userRepository->getById($request->userId);
+        $userId = filter_var($this->authService->getClaimFromToken(AuthService::USER_ID_CLAIM, $request->refreshToken), FILTER_VALIDATE_INT);
+
+        if ($userId === false) {
+            throw new ApplicationException("Not able to authorize user", 401);
+        }
+
+        $user = $this->userRepository->getById($userId);
 
         if ($user === null) {
             throw new ApplicationException("Not able to authorize user", 401);
@@ -159,7 +177,7 @@ class UserService
             throw new ApplicationException("Not able to authorize user", 401);
         }
 
-        return UserMapper::mapToAuthResponse($user);
+        return UserMapper::mapToTokenResponse($user);
     }
 
     public function changePassword(ChangePasswordRequest $request): void

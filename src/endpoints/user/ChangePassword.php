@@ -8,9 +8,7 @@ use services\user\UserService;
 
 class ChangePassword extends BaseEndpoint
 {
-    public function __construct(private readonly UserService $userService)
-    {
-    }
+    public function __construct(private readonly UserService $userService) {}
 
     public function __invoke(ChangePasswordRequest $payload)
     {

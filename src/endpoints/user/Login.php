@@ -12,8 +12,7 @@ class Login extends BaseEndpoint
     public function __construct(
         private readonly UserService $userService,
         private readonly LoginRequestValidator $validator
-    ) {
-    }
+    ) {}
 
     public function __invoke(LoginRequest $payload)
     {

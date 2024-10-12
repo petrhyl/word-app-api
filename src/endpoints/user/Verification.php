@@ -11,8 +11,7 @@ class Verification extends BaseEndpoint
     public function __construct(
         private readonly VerificationKeyValidator $validator,
         private readonly UserService $userService
-    ) {
-    }
+    ) {}
 
     public function __invoke(string $key)
     {

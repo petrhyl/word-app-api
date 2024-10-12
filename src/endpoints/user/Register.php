@@ -11,9 +11,8 @@ class Register extends BaseEndpoint
 {
     public function __construct(
         private readonly UserService $userService,
-        private readonly RegisterRequestValidator $validator)
-    {
-    }
+        private readonly RegisterRequestValidator $validator
+    ) {}
 
     public function __invoke(RegisterRequest $payload)
     {

@@ -3,19 +3,17 @@
 namespace endpoints\user;
 
 use endpoints\BaseEndpoint;
-use models\request\RefreshLoginRequest;
+use models\request\RefreshTokensRequest;
 use services\user\UserService;
 
 class Refresh extends BaseEndpoint
 {
-    public function __construct(private readonly UserService $userService)
-    {
-    }
+    public function __construct(private readonly UserService $userService) {}
 
-    public function __invoke(RefreshLoginRequest $payload)
+    public function __invoke(RefreshTokensRequest $payload)
     {
-        $response = $this->userService->refreshLogin($payload);
+        $response = $this->userService->refreshTokens($payload);
 
-        $this->respondAndDie(["auth" => $response]);
+        $this->respondAndDie(["auth" => ["token" => $response]]);
     }
 }

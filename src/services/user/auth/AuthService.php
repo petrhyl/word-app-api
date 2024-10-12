@@ -130,7 +130,7 @@ class AuthService
         return $this->createTokensAndAssignThemToUser($user);
     }
 
-    public function areTokensValid(string $refreshToken, string $token, int $userId): bool
+    public function areTokensValid(string $refreshToken, string $token): bool
     {
         $claims = $this->tokenService->decodeDataFromToken($token);
 
@@ -150,7 +150,7 @@ class AuthService
             return false;
         }
 
-        if ($userIdFromRefreshToken !== $userIdFromToken || $userIdFromToken !== $userId) {
+        if ($userIdFromRefreshToken !== $userIdFromToken) {
             return false;
         }
 
