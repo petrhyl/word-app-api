@@ -27,7 +27,7 @@ class EndpointRegistrator
         );
 
         $this->router->get('word-app/api/languages', languages\GetAllowedLanguages::class);
-        $this->router->get('word-app/api/languages/user', languages\GetUserLanguages::class, [AuthorizationMiddleware::class]);
+        $this->router->get('word-app/api/languages/user', languages\GetUserVocabularyLanguages::class, [AuthorizationMiddleware::class]);
 
         return $this->router;
     }

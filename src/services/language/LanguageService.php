@@ -27,11 +27,11 @@ class LanguageService
     /**
      * @return \models\domain\language\UserLanguage[]
      */
-    public function getUserLanguages(): array
+    public function getUserVacabularyLanguages(): array
     {
         $userId = $this->authService->getAuthenticatedUserId();
 
-        $languages = $this->languageRepository->getUserLanguages($userId);
+        $languages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
 
         return LanguageMapper::mapLanguagesToResponse($languages);
     }
@@ -41,8 +41,8 @@ class LanguageService
      * @param int $userId
      * @return void
      */
-    public function createUserLanguagesIfDoNotExist(array $languages, int $userId) : void {
-        $userLanguages = $this->languageRepository->getUserLanguages($userId);
+    public function createVocabularyLanguagesIfDoNotExist(array $languages, int $userId) : void {
+        $userLanguages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
 
         $languageMap = [];
         foreach ($userLanguages as $userLang) {
@@ -59,7 +59,7 @@ class LanguageService
                 $newUserLanguage->CorrectAnswers = 0;
                 $newUserLanguage->IncorrectAnswers = 0;
 
-                $result = $this->languageRepository->createUserLanguage($newUserLanguage);
+                $result = $this->languageRepository->createVocabularyLanguage($newUserLanguage);
 
                 if (!$result) {
                     throw new Exception("Failed to create user language [{$lang}]", 101);                    

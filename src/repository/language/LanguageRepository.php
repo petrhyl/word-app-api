@@ -20,7 +20,7 @@ class LanguageRepository
      * @param int $userId
      * @return \models\domain\language\UserLanguage[]
      */
-    public function getUserLanguages(int $userId): array
+    public function getVacabularyLanguagesOfUser(int $userId): array
     {
         $stmt = $this->conn->prepare('SELECT * FROM Wordapp_Languages WHERE UserId = :userId');
 
@@ -37,9 +37,9 @@ class LanguageRepository
         return $result;
     }
 
-    public function getUserLanguage(int $userId, string $code): UserLanguage | null{
+    public function getVocabularyLanguageOfUser(int $userId, string $languageCode): UserLanguage | null{
         $stmt = $this->conn->prepare('SELECT * FROM Wordapp_Languages WHERE UserId = :userId AND Code = :code');
-        $stmt->execute(['userId' => $userId, 'code' => $code]);
+        $stmt->execute(['userId' => $userId, 'code' => $languageCode]);
         
         $result = $stmt->fetchObject(UserLanguage::class);
 
@@ -50,7 +50,7 @@ class LanguageRepository
         return $result;
     }
 
-    public function createUserLanguage(UserLanguage $userLanguage): bool{
+    public function createVocabularyLanguage(UserLanguage $userLanguage): bool{
         $stmt = $this->conn->prepare(
             'INSERT INTO Wordapp_Languages (UserId, Code, CorrectAnswers, IncorrectAnswers) VALUES (:userId, :code, :corrA, :incorrA)'
         );
@@ -65,7 +65,7 @@ class LanguageRepository
         return $stmt->rowCount() > 0;
     }
 
-    public function updateUserLanguage(UserLanguage $userLanguage): bool{
+    public function updateVocabularyLanguage(UserLanguage $userLanguage): bool{
         $stmt = $this->conn->prepare(
             'UPDATE Wordapp_Languages SET CorrectAnswers = :corrA, IncorrectAnswers = :incorrA WHERE UserId = :userId AND Code = :code'
         );

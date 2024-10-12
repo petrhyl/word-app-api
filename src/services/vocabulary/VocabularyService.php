@@ -49,7 +49,7 @@ class VocabularyService
         $userId = $this->authService->getAuthenticatedUserId();
 
         $items = [];
-        $userLanguages = $this->languageRepository->getUserLanguages($userId);
+        $userLanguages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
         $languages = [];
 
         foreach ($userLanguages as $lang) {
@@ -76,7 +76,7 @@ class VocabularyService
                 $userLanguage->CorrectAnswers = 0;
                 $userLanguage->IncorrectAnswers = 0;
 
-                $this->languageRepository->createUserLanguage($userLanguage);
+                $this->languageRepository->createVocabularyLanguage($userLanguage);
             }
         } 
         
