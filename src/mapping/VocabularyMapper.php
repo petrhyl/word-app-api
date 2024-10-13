@@ -2,52 +2,65 @@
 
 namespace mapping;
 
+use models\domain\language\VocabularyLanguage;
 use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
-use models\request\UpdateVocabularyItemRequest;
-use models\response\UserVocabulary;
+use models\response\ExerciseItemResponse;
+use models\response\ExerciseResponse;
 
 class VocabularyMapper
 {
-    public static function mapToUserVocabulary(VocabularyItem $word)
+    public static function mapToExerciseItemResponse(VocabularyItem $word)
     {
-        $userVocabulary = new UserVocabulary();
-        $userVocabulary->id = $word->Id;
-        $userVocabulary->word = $word->Value;
-        $userVocabulary->language = $word->Language;
-        $userVocabulary->updatedAt = $word->updatedAt()->format('c');
-        $userVocabulary->correctAnswers = $word->CorrectAnswers;
-        $userVocabulary->isLearned = $word->IsLearned;
-        $userVocabulary->translations = explode(',', $word->Translations);
+        $item = new ExerciseItemResponse();
+        $item->id = $word->Id;
+        $item->word = $word->Value;
+        $item->updatedAt = $word->updatedAt()->format('c');
+        $item->correctAnswers = $word->CorrectAnswers;
+        $item->isLearned = $word->IsLearned;
+        $item->translations = explode(';', $word->Translations);
 
-        return $userVocabulary;
+        return $item;
     }
 
     /**
-     * @param VocabularyItem[] $words
-     * @return UserVocabulary[]
+     * @param VocabularyItem[] $vocabularyItems
+     * @return \models\response\ExerciseResponse
      */
-    public static function mapToUserVocabularyArray(array $words): array
-    {
-        $vocabulary = [];
+    public static function mapToExerciseResponse(array $vocabularyItems, VocabularyLanguage $language): ExerciseResponse
+    {        
+        $words = [];
 
-        foreach ($words as $word) {
-            $vocabulary[] = self::mapToUserVocabulary($word);
+        foreach ($vocabularyItems as $item) {
+            $words[] = self::mapToExerciseItemResponse($item);
         }
 
-        return $vocabulary;
+        $exercise = new ExerciseResponse();
+        $exercise->languageId = $language->Id;
+        $exercise->languageCode = $language->Code;
+
+        $exercise->words = $words;
+
+        return $exercise;
     }
 
-    public static function mapUpdateRequestToVocabularyItem(UpdateVocabularyItemRequest $request, int $id, int $userId) : VocabularyItem {
-        $item = new VocabularyItem();
-        $item->Id = $id;
-        $item->UserId = $userId;
-        $item->Value = $request->word;
-        $item->Language = $request->language;
-        $item->IsLearned = $request->isLearned;
-        $item->CorrectAnswers = $request->correctAnswers;
-        $item->Translations = implode(';', $request->translations);
-
-        return $item;
+     /**
+     * @param CreateVocabularyRequest $request
+     * @return VocabularyItem[]
+     */
+    public static function mapCreateRequestToVocabularyItems(CreateVocabularyRequest $request, int $userId, int $languageId) : array {
+        $items = [];
+        foreach ($request->vocabularyItems as $requestItem) {
+            $item = new VocabularyItem();
+            $item->UserId = $userId;
+            $item->Value = $requestItem->word;
+            $item->VocabularyLanguageId = $languageId;
+            $item->IsLearned = false;
+            $item->CorrectAnswers = 0;
+            $item->Translations = implode(';', $requestItem->translations);
+            $items[] = $item;
+        } 
+        
+        return $items;
     }
 }

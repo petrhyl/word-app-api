@@ -2,7 +2,7 @@
 
 namespace models\response;
 
-class UserVocabulary
+class ExerciseItemResponse
 {
     public int $id;
     public string $word;
@@ -11,7 +11,6 @@ class UserVocabulary
      */
     public array $translations;
     public int $correctAnswers;
-    public int $isLearned;
-    public string $language;
+    public bool $isLearned;
     public string $updatedAt;
 }

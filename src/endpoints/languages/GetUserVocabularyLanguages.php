@@ -7,9 +7,7 @@ use services\language\LanguageService;
 
 class GetUserVocabularyLanguages extends BaseEndpoint
 {
-    public function __construct(private readonly LanguageService $languageService)
-    {
-    }
+    public function __construct(private readonly LanguageService $languageService) {}
 
     public function __invoke()
     {

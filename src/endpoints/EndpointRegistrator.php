@@ -19,14 +19,17 @@ class EndpointRegistrator
         $this->router->post('word-app/api/user/verification/{key}', user\Verification::class);
 
         $this->router->post('word-app/api/vocabulary', vocabulary\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
-        $this->router->get('word-app/api/vocabulary', vocabulary\GetUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post(
             'word-app/api/vocabulary/items/{id}',
-            vocabulary\UpdateUserVocabularyItem::class,
+            vocabulary\UpdateUserVocabularyItemTranslations::class,
             [AuthorizationMiddleware::class]
         );
 
-        $this->router->get('word-app/api/languages', languages\GetAllowedLanguages::class);
+        $this->router->get('word-app/api/exercises', exercises\GetExercise::class, [AuthorizationMiddleware::class]);
+        $this->router->get('word-app/api/exercises/results', exercises\GetResults::class, [AuthorizationMiddleware::class]);
+        $this->router->post('word-app/api/exercises/results', exercises\CreateExerciseResult::class, [AuthorizationMiddleware::class]);
+
+        $this->router->get('word-app/api/languages/allowed', languages\GetAllowedLanguages::class);
         $this->router->get('word-app/api/languages/user', languages\GetUserVocabularyLanguages::class, [AuthorizationMiddleware::class]);
 
         return $this->router;

@@ -2,11 +2,9 @@
 
 namespace models\request;
 
-class UpdateVocabularyItemRequest{
+class UpdateVocabularyItemTranslationsRequest{
     public string $word;
-    public string $language;
-    public bool $isLearned;
-    public int $correctAnswers;
+    public int $languageId;
     /**
      * @var string[]
      */

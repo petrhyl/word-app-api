@@ -9,9 +9,9 @@ use utils\Constants;
 class VocabularyItem extends DomainEntity
 {
     public int $UserId;
+    public int $VocabularyLanguageId;
     public string $Value;
     public string $Translations;
-    public string $Language;
     public bool $IsLearned;
     public int $CorrectAnswers;
     private string $UpdatedAt;

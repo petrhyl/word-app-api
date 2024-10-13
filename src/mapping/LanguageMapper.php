@@ -2,24 +2,23 @@
 
 namespace mapping;
 
-use models\domain\language\UserLanguage;
+use models\domain\language\VocabularyLanguage;
 use models\response\LanguageResponse;
 
 class LanguageMapper
 {
-    public static function mapLanguageToResponse(UserLanguage $language): LanguageResponse
+    public static function mapLanguageToResponse(VocabularyLanguage $language): LanguageResponse
     {
         $response = new LanguageResponse();
         $response->id = $language->Id;
         $response->userId = $language->UserId;
         $response->code = $language->Code;
-        $response->successRate = self::calculateSuccessRate($language->CorrectAnswers, $language->IncorrectAnswers);
 
         return $response;
     }
 
     /**
-     * @param UserLanguage[] $languages
+     * @param VocabularyLanguage[] $languages
      * @return LanguageResponse[]
      */
     public static function mapLanguagesToResponse(array $languages): array
@@ -31,16 +30,5 @@ class LanguageMapper
         }
 
         return $response;
-    }
-
-    private static function calculateSuccessRate(int $correctAnswers, int $incorrectAnswers): int
-    {
-        $totalAnswers = $correctAnswers + $incorrectAnswers;
-
-        if ($totalAnswers === 0) {
-            return 0;
-        }
-
-        return ($correctAnswers / $totalAnswers) * 100;
-    }
+    }    
 }

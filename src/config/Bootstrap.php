@@ -6,11 +6,11 @@ use Exception;
 use models\DbConfiguration;
 use models\email\EmailServerConfiguration;
 use models\RegistrationConfiguration;
-use repository\user\TokenRepository;
+use repository\language\LanguageRepository;
 use repository\user\UserRepository;
+use repository\vocabulary\VocabularyRepository;
 use services\EncryptionService;
 use services\user\auth\AuthService;
-use services\user\auth\TokenService;
 use services\user\EmailSenderService;
 use services\user\UserService;
 use WebApiCore\Container\AppBuilder;
@@ -66,12 +66,7 @@ class Bootstrap
         );
         $builder->Container->bindScoped(
             AuthService::class,
-            fn(InstanceProvider $instanceProvider) => new AuthService(
-                $instanceProvider->get(UserRepository::class),
-                $instanceProvider->build(TokenService::class),
-                $instanceProvider->build(TokenRepository::class),
-                $instanceProvider->get(EncryptionService::class)
-            )
+            fn(InstanceProvider $instanceProvider) => $instanceProvider->build(AuthService::class)
         );
 
         $registationConf = self::getRegistrationConfiguration();
@@ -94,6 +89,16 @@ class Bootstrap
         $builder->Container->bindScoped(
             UserRepository::class,
             fn(InstanceProvider $instanceProvider) => $instanceProvider->build(UserRepository::class)
+        );
+
+        $builder->Container->bindScoped(
+            VocabularyRepository::class,
+            fn(InstanceProvider $instanceProvider) => $instanceProvider->build(VocabularyRepository::class)
+        );
+
+        $builder->Container->bindScoped(
+            LanguageRepository::class,
+            fn(InstanceProvider $instanceProvider) => $instanceProvider->build(LanguageRepository::class)
         );
 
         return $builder;
@@ -120,9 +125,10 @@ class Bootstrap
         return $conf;
     }
 
-    private static function getRegistrationConfiguration() : RegistrationConfiguration {
+    private static function getRegistrationConfiguration(): RegistrationConfiguration
+    {
         $confArray = Configuration::getConfiguration(
-            ['VERIFICATION_LINK', 'EMAIL_VERIFICATION'],
+            ['VERIFICATION_LINK','LOGIN_LINK', 'EMAIL_VERIFICATION'],
         );
 
         if (count($confArray) < 2) {
@@ -131,6 +137,7 @@ class Bootstrap
 
         $conf = new RegistrationConfiguration();
         $conf->VerificationClientLink = $confArray['VERIFICATION_LINK'];
+        $conf->LoginClientLink = $confArray['LOGIN_LINK'];
         $conf->IsEmailVerificationRequired = $confArray['EMAIL_VERIFICATION'];
 
         return $conf;

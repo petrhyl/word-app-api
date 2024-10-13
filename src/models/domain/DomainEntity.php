@@ -8,7 +8,7 @@ use utils\Constants;
 abstract class DomainEntity
 {
     public ?int $Id;
-    protected string $CreatedAt;
+    protected ?string $CreatedAt;
     public function createdAt() : DateTime
     {
         return new DateTime($this->CreatedAt);        

@@ -80,7 +80,8 @@ class UserService
             throw new ApplicationException("Not allowed to log out user with provided ID", 403);
         }
 
-        $user->RefreshToken = $request->refreshToken;
+        $user->RefreshToken = new AuthToken();
+        $user->RefreshToken->Value = $request->refreshToken;
 
         $this->authService->logout($user);
     }
@@ -207,8 +208,9 @@ class UserService
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Please, verify your e-mail addres to fully enjoy our web application.</p>        
-        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a>.<br /></p>
-        <p style=\"font-size: 0.9em\">If this request wasn't made by you, please disregard or delete this email.</p>";
+        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a></p>
+        <p> </p>
+        <p style=\"font-size: 0.8em\">If this request wasn't made by you, please disregard or delete this email.</p>";
         $message->plainMessage = "Hello from Word App\n 
         Thank you for your registration on our web site.\n
         Please, verify your e-mail addres to fully enjoy our web about fashion.
@@ -222,6 +224,8 @@ class UserService
 
     private function sendVerifiedEmail(User $user, string $recipientName = ''): void
     {
+        $link = $this->registrationConfiguration->LoginClientLink;
+
         $message = new EmailMessage();
         $message->subject = "E-mail verified";
         $message->body =
@@ -231,8 +235,10 @@ class UserService
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Your e-mail address was successfully verified.</p>
-        <p>We hope you will like our web application for vocabulary learning.<br /></p>        
-        <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>";
+        <p>We hope you will like our web application for vocabulary learning.</p>
+        <p>You can enjoy our application after logging in at this link:  <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$link}\">Log In</a></p>
+        <p> </p>
+        <p style=\"font-size: 0.8em\">If this email doesn't belong to you, please ignore or delete it.</p>";
         $message->plainMessage = "Hello from Feelofalai Fashion Blog\n 
         Thank you for your registration/subscription on our web site.\n
         Your e-mail address was successfully verified.
