@@ -2,10 +2,9 @@
 
 namespace validators\vocabulary;
 
-use utils\Constants;
 use validators\common\Validator;
 
-class UpdateVocabularyItemRequestValidator extends Validator
+class UpdateVocabularyItemTranslationsRequestValidator extends Validator
 {
     public function __construct()
     {
@@ -13,16 +12,12 @@ class UpdateVocabularyItemRequestValidator extends Validator
     }
 
     /**
-     * @param \models\request\UpdateVocabularyItemRequest $object
+     * @param \models\request\UpdateVocabularyItemTranslationsRequest $object
      */
     public function validate($object): void
     {
-        if (empty($object->language)) {
-            $this->addInvalidProperty("language", "Language can not be empty.");
-        }
-
-        if (!array_key_exists($object->language, Constants::languageCodes())) {
-            $this->addInvalidProperty("language", "Not applicable language alpha-2 code.");
+        if (empty($object->languageId)) {
+            $this->addInvalidProperty("languageId", "Language ID can not be empty.");
         }
 
         if (empty($object->word)) {

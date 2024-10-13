@@ -1,13 +1,13 @@
 <?php
 
-namespace models\domain\language;
+namespace models\domain\exercise;
 
 use models\domain\DomainEntity;
 
-class UserLanguage extends DomainEntity
+class ExerciseResult extends DomainEntity
 {
     public int $UserId;
-    public string $Code;
+    public int $VocabularyLanguageId;
     public int $CorrectAnswers;
     public int $IncorrectAnswers;
 }

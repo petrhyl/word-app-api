@@ -2,8 +2,8 @@
 
 namespace models\request;
 
-class GetVocabularyQuery
+class GetExerciseQuery
 {
     public int $limit;
-    public string $lang;
+    public int $langId;
 }

@@ -4,10 +4,11 @@ namespace services\language;
 
 use Exception;
 use mapping\LanguageMapper;
-use models\domain\language\UserLanguage;
+use models\domain\language\VocabularyLanguage;
 use repository\language\LanguageRepository;
 use services\user\auth\AuthService;
 use utils\Constants;
+use WebApiCore\Exceptions\ApplicationException;
 
 class LanguageService
 {
@@ -25,7 +26,7 @@ class LanguageService
     }
 
     /**
-     * @return \models\domain\language\UserLanguage[]
+     * @return \models\domain\language\VocabularyLanguage[]
      */
     public function getUserVacabularyLanguages(): array
     {
@@ -37,34 +38,36 @@ class LanguageService
     }
 
     /**
-     * @param string[] $languages
+     * @param string $language
      * @param int $userId
-     * @return void
+     * @return VocabularyLanguage returns created vocabulary language or existing one
+     * @throws ApplicationException
+     * @throws Exception
      */
-    public function createVocabularyLanguagesIfDoNotExist(array $languages, int $userId) : void {
+    public function createVocabularyLanguageIfDoesNotExist(string $language, int $userId): VocabularyLanguage
+    {
         $userLanguages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
 
-        $languageMap = [];
-        foreach ($userLanguages as $userLang) {
-            $languageMap[$userLang->Code] = $userLang->Code;
+        if (count($userLanguages) > 14) {
+            throw new ApplicationException("User can have up to 15 languages", 422);
         }
-
-        foreach ($languages as $lang) {
-            if (!array_key_exists($lang, $languageMap)) {
-                $languageMap[$lang] = $lang;
-
-                $newUserLanguage = new UserLanguage();
-                $newUserLanguage->Code = $lang;
-                $newUserLanguage->UserId = $userId;
-                $newUserLanguage->CorrectAnswers = 0;
-                $newUserLanguage->IncorrectAnswers = 0;
-
-                $result = $this->languageRepository->createVocabularyLanguage($newUserLanguage);
-
-                if (!$result) {
-                    throw new Exception("Failed to create user language [{$lang}]", 101);                    
-                }
+       
+        foreach ($userLanguages as $lang) {
+            if ($lang->Code === $language) {
+                return $lang;
             }
         }
+
+        $userLanguage = new VocabularyLanguage();
+        $userLanguage->Code = $language;
+        $userLanguage->UserId = $userId;
+
+        $result = $this->languageRepository->createVocabularyLanguage($userLanguage);
+
+        if (!$result) {
+            throw new Exception("Failed to create vocabulary language", 101);
+        }
+
+        return $result;
     }
 }
