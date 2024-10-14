@@ -204,11 +204,11 @@ class UserService
         $message->body =
             "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
         <span>Hello from Word App&nbsp;</span>
-        <span style=\"font-size: 0.9em\">Vocabulary learning</span>
+        <span style=\"font-size: 0.9em\">Vocabulary practising</span>
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Please, verify your e-mail addres to fully enjoy our web application.</p>        
-        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a></p>
+        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a></p>
         <p> </p>
         <p style=\"font-size: 0.8em\">If this request wasn't made by you, please disregard or delete this email.</p>";
         $message->plainMessage = "Hello from Word App\n 
@@ -231,18 +231,19 @@ class UserService
         $message->body =
             "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
         <span>Hello from Word App&nbsp;</span>
-        <span style=\"font-size: 0.9em\">Vocabulary learning</span>
+        <span style=\"font-size: 0.9em\">Vocabulary practising</span>
         </h2>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Your e-mail address was successfully verified.</p>
         <p>We hope you will like our web application for vocabulary learning.</p>
-        <p>You can enjoy our application after logging in at this link:  <a style=\"color: #1961b6; font-weight: 600; font-size: 1.2em\" href=\"{$link}\">Log In</a></p>
+        <p>You can enjoy our application after logging in at this link:  <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$link}\">Log In</a></p>
         <p> </p>
         <p style=\"font-size: 0.8em\">If this email doesn't belong to you, please ignore or delete it.</p>";
         $message->plainMessage = "Hello from Feelofalai Fashion Blog\n 
         Thank you for your registration/subscription on our web site.\n
         Your e-mail address was successfully verified.
-        We hope you will like our web application for vocabulary learning.\n\n
+        We hope you will like our web application for vocabulary learning.\n
+        You can enjoy our application after logging in at this link: {$link}\n\n
         If this email doesn't belong to you, please ignore or delete it.";
         $message->recipientAddress = $user->Email;
         $message->recipientName = $recipientName;
