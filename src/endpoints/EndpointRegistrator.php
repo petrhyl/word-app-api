@@ -18,10 +18,10 @@ class EndpointRegistrator
         $this->router->post('word-app/api/user/refresh', user\Refresh::class);
         $this->router->post('word-app/api/user/verification/{key}', user\Verification::class);
 
-        $this->router->post('word-app/api/vocabulary', vocabulary\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
+        $this->router->post('word-app/api/vocabularies', vocabularies\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post(
-            'word-app/api/vocabulary/items/{id}',
-            vocabulary\UpdateUserVocabularyItemTranslations::class,
+            'word-app/api/vocabularies/items/{id}',
+            vocabularies\UpdateUserVocabularyItemTranslations::class,
             [AuthorizationMiddleware::class]
         );
 

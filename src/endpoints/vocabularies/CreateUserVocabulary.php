@@ -1,6 +1,6 @@
 <?php
 
-namespace endpoints\vocabulary;
+namespace endpoints\vocabularies;
 
 use endpoints\BaseEndpoint;
 use models\request\CreateVocabularyRequest;
