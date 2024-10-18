@@ -14,6 +14,7 @@ use models\request\LoginRequest;
 use models\request\LogoutRequest;
 use models\request\RefreshTokensRequest;
 use models\request\RegisterRequest;
+use models\request\SendEmailRequest;
 use models\response\AuthResponse;
 use models\response\RegisterResponse;
 use models\response\RegisterResponseMessage;
@@ -32,7 +33,8 @@ class UserService
         private readonly EmailSenderService $emailSender
     ) {}
 
-    public function getAuthenticatedUser() : UserResponse {
+    public function getAuthenticatedUser(): UserResponse
+    {
         $user = $this->authService->getAuthenticatedUser();
 
         if ($user === null) {
@@ -194,6 +196,29 @@ class UserService
         }
     }
 
+    public function sendEmailToVerification(SendEmailRequest $request): void
+    {
+        $user = $this->userRepository->getByEmail($request->email);
+
+        if ($user === null) {
+            throw new ApplicationException("User with provided e-mail was not found", 404);
+        }
+
+        if ($user->IsVerified) {
+            throw new ApplicationException("User's e-mail address is already verified", 422);
+        }
+
+        $user->UpdatedAt = new DateTime();
+        $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
+        $result = $this->userRepository->update($user);
+
+        if (!$result) {
+            throw new Exception("Failed to update EmailAddress in database during verification", 101);
+        }
+
+        $this->sendVerificationEmail($user);
+    }
+
 
     private function sendVerificationEmail(User $user, string $recipientName = ''): void
     {
@@ -202,15 +227,13 @@ class UserService
         $message = new EmailMessage();
         $message->subject = "E-mail verification";
         $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
-        <span>Hello from Word App&nbsp;</span>
-        <span style=\"font-size: 0.9em\">Vocabulary practising</span>
-        </h2>
+            "<h2 style=\"margin: 25px auto 10px 15px\">Hello from Word App</h2>
+        <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practising</p>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Please, verify your e-mail addres to fully enjoy our web application.</p>        
         <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a></p>
-        <p> </p>
-        <p style=\"font-size: 0.8em\">If this request wasn't made by you, please disregard or delete this email.</p>";
+        <p>&nbsp;</p>
+        <p style=\"font-size: 0.9em\">If this request wasn't made by you, please disregard or delete this email.</p>";
         $message->plainMessage = "Hello from Word App\n 
         Thank you for your registration on our web site.\n
         Please, verify your e-mail addres to fully enjoy our web about fashion.
@@ -229,16 +252,14 @@ class UserService
         $message = new EmailMessage();
         $message->subject = "E-mail verified";
         $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px;display: flex;flex-direction: column;row-gap: 10px;\">
-        <span>Hello from Word App&nbsp;</span>
-        <span style=\"font-size: 0.9em\">Vocabulary practising</span>
-        </h2>
+            "<h2 style=\"margin: 25px auto 35px 15px\">Hello from Word App</h2>
+        <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practising</p>
         <h3>Thank you for your registration on our web site.</h3>
         <p>Your e-mail address was successfully verified.</p>
         <p>We hope you will like our web application for vocabulary learning.</p>
         <p>You can enjoy our application after logging in at this link:  <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$link}\">Log In</a></p>
-        <p> </p>
-        <p style=\"font-size: 0.8em\">If this email doesn't belong to you, please ignore or delete it.</p>";
+        <p>&nbsp;</p>
+        <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>";
         $message->plainMessage = "Hello from Feelofalai Fashion Blog\n 
         Thank you for your registration/subscription on our web site.\n
         Your e-mail address was successfully verified.

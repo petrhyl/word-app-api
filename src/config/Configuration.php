@@ -19,10 +19,10 @@ class Configuration
 
         $result = [];
         foreach ($keys as $key) {
-            if (array_key_exists($key, $configKeyValuePairs)) {
-                $result[$key] = $configKeyValuePairs[$key];
-            } elseif (!empty(getenv($key))) {
+            if (!empty(getenv($key))) {
                 $result[$key] = getenv($key);
+            } elseif (array_key_exists($key, $configKeyValuePairs)) {
+                $result[$key] = $configKeyValuePairs[$key];
             }
         }
 

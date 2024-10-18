@@ -4,6 +4,7 @@ namespace services\user\auth;
 
 use config\ErrorHandler;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use models\domain\user\AuthToken;
 use models\domain\user\User;
@@ -194,7 +195,11 @@ class AuthService
 
     private function createTokensAndAssignThemToUser(User $user): User
     {
-        $secondsToExpire = time() + 1200;
+        $currentDate = new DateTime();
+        $currentDate->setTimezone(new DateTimeZone('UTC'));
+        $currentTimestamp = $currentDate->getTimestamp();
+
+        $secondsToExpire = $currentTimestamp + 1200;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
@@ -209,7 +214,7 @@ class AuthService
         $accessToken->Value = $token;
         $accessToken->ExpireIn = $secondsToExpire;
 
-        $secondsToExpire += 15_552_000;
+        $secondsToExpire = $currentTimestamp + 15_552_000;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
