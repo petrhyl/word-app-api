@@ -7,8 +7,8 @@ $confData = [
     "EMAIL_SENDER_ADR" => "info@hyl-petr.xf.cz",
     "EMAIL_SENDER_NM" => "Feelofalai",
     "EMAIL_PORT" => "587",
-    "VERIFICATION_LINK" => "https://localhost:3000/blog/signup/verification/",
-    "LOGIN_LINK" => "https://localhost:3000/blog/login",
+    "VERIFICATION_LINK" => "http://localhost:3001/word-app/signup/verification/",
+    "LOGIN_LINK" => "http://localhost:3001/word-app/login",
     "EMAIL_VERIFICATION" => true,    
 ];
 
