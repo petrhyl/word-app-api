@@ -197,7 +197,7 @@ class AuthService
     {
         $currentDate = new DateTime();
         $currentDate->setTimezone(new DateTimeZone('UTC'));
-        $currentTimestamp = $currentDate->getTimestamp();
+        $currentTimestamp = intval($currentDate->format('Uv'));
 
         $secondsToExpire = $currentTimestamp + 1200;
 
