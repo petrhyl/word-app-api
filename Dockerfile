@@ -20,11 +20,11 @@ RUN ln -snf /usr/share/zoneinfo/$TMZN /etc/localtime && echo $TMZN > /etc/timezo
 RUN docker-php-ext-install pdo pdo_mysql
 
 RUN a2enmod headers
-RUN echo -e "<IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin \"*\"
-    Header set Access-Control-Allow-Methods \"GET, POST, PUT, DELETE, OPTIONS\"
-    Header set Access-Control-Allow-Headers \"Content-Type, Authorization\"
-    Header set Access-Control-Allow-Credentials \"true\"
+RUN echo "<IfModule mod_headers.c>\n\
+Header set Access-Control-Allow-Origin \"*\"\n\
+Header set Access-Control-Allow-Methods \"GET, POST, PUT, DELETE, OPTIONS\"\n\
+Header set Access-Control-Allow-Headers \"Content-Type, Authorization\"\n\
+Header set Access-Control-Allow-Credentials \"true\"\n\
 </IfModule>" >> /etc/apache2/apache2.conf
 # enable .htaccess file to rewrite urls
 RUN a2enmod rewrite
