@@ -197,28 +197,31 @@ class AuthService
     {
         $currentDate = new DateTime();
         $currentDate->setTimezone(new DateTimeZone('UTC'));
-        $currentTimestamp = intval($currentDate->format('Uv'));
+        $currentTimestampInSeconds = $currentDate->getTimestamp();
 
-        $secondsToExpire = $currentTimestamp + 1200;
+
+        $secondsToExpire = $currentTimestampInSeconds + 1200;
+        $expiryTimestamp = $secondsToExpire * 1000;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
             self::NAME_CLAIM => $user->Name,
             self::EMAIL_CLAIM => $user->Email,
-            self::EXPIRE_IN_CLAIM => $secondsToExpire
+            self::EXPIRE_IN_CLAIM => $expiryTimestamp
         ];
 
         $token = $this->tokenService->createToken($claims);
 
         $accessToken = new AuthToken();
         $accessToken->Value = $token;
-        $accessToken->ExpireIn = $secondsToExpire;
+        $accessToken->ExpireIn = $expiryTimestamp;
 
-        $secondsToExpire = $currentTimestamp + 15_552_000;
+        $secondsToExpire = $currentTimestampInSeconds + 15_552_000;
+        $expiryTimestamp = $secondsToExpire * 1000;
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
-            self::EXPIRE_IN_CLAIM => $secondsToExpire
+            self::EXPIRE_IN_CLAIM => $expiryTimestamp
         ];
 
         $refreshToken = $this->tokenService->createToken($claims);
@@ -238,7 +241,7 @@ class AuthService
         $user->AccessToken = $accessToken;
         $user->RefreshToken = new AuthToken();
         $user->RefreshToken->Value = $refreshToken;
-        $user->RefreshToken->ExpireIn = $secondsToExpire;
+        $user->RefreshToken->ExpireIn = $expiryTimestamp;
 
         return $user;
     }
