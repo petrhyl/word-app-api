@@ -23,9 +23,9 @@ class ExerciseRepository
     }
 
     private const GET_EXERCISE_RESULT_QUERY =
-    "SELECT UserId, VocabularyLanguageId, vl.Code AS VocabularyLanguageCode, SUM(CorrectAnswers) AS CorrectAnswers, SUM(IncorrectAnswers) AS IncorrectAnswers, COUNT(Id) AS ExercisesCount
-         FROM Wordapp_ExerciseResults 
-         INNER JOIN Wordapp_VocabularyLanguages AS vl ON Wordapp_ExerciseResults.VocabularyLanguageId = vl.Id ";
+    "SELECT er.UserId AS UserId, VocabularyLanguageId, vl.Code AS VocabularyLanguageCode, SUM(CorrectAnswers) AS CorrectAnswers, SUM(IncorrectAnswers) AS IncorrectAnswers, COUNT(er.Id) AS ExercisesCount
+         FROM Wordapp_ExerciseResults AS er
+         INNER JOIN Wordapp_VocabularyLanguages AS vl ON er.VocabularyLanguageId = vl.Id ";
 
     public function create(ExerciseResult $exercise): bool
     {
@@ -103,7 +103,7 @@ class ExerciseRepository
     public function getLanguageExerciseResultOfUser(int $userId, int $languageId): LanguageExerciseResult | null
     {
         $query = self::GET_EXERCISE_RESULT_QUERY . "
-        WHERE UserId = :userId AND VocabularyLanguageId = :languageId
+        WHERE er.UserId = :userId AND VocabularyLanguageId = :languageId
         GROUP BY VocabularyLanguageId, VocabularyLanguageCode";
 
         $stmt = $this->conn->prepare($query);
@@ -125,7 +125,7 @@ class ExerciseRepository
     public function getLanguageExerciseResultsOfUser(int $userId): array
     {
         $query = self::GET_EXERCISE_RESULT_QUERY . "
-        WHERE UserId = :userId
+        WHERE er.UserId = :userId
         GROUP BY VocabularyLanguageId, VocabularyLanguageCode";
 
         $stmt = $this->conn->prepare($query);
