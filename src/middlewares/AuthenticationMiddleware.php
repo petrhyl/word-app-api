@@ -43,8 +43,7 @@ class AuthenticationMiddleware implements IMiddleware
 
             $user = new HttpUser();
             $user->id = $claims[AuthService::USER_ID_CLAIM];
-            $user->name = $claims[AuthService::NAME_CLAIM];
-            $user->username = $claims[AuthService::EMAIL_CLAIM];
+            $user->email = $claims[AuthService::EMAIL_CLAIM];
             $user->apiKey = null;
             $user->token = $matches[1];
 

@@ -2,7 +2,6 @@
 
 namespace services\exercise;
 
-use DateTime;
 use Exception;
 use mapping\ExerciseResultMapper;
 use mapping\VocabularyMapper;
@@ -13,8 +12,10 @@ use repository\exercise\ExerciseRepository;
 use repository\language\LanguageRepository;
 use repository\vocabulary\VocabularyRepository;
 use services\user\auth\AuthService;
+use WebApiCore\Exceptions\ApplicationException;
 
-class ExerciseService{
+class ExerciseService
+{
     public function __construct(
         private readonly ExerciseRepository $exerciseRepository,
         private readonly VocabularyRepository $vocabularyRepository,
@@ -30,6 +31,10 @@ class ExerciseService{
         $userId = $this->authService->getAuthenticatedUserId();
 
         $userLanguage = $this->languageRepository->getVocabularyLanguageById($query->langId);
+
+        if ($userLanguage === null || $userLanguage->UserId !== $userId) {
+            throw new ApplicationException("User's vocabulary language not found", 404);
+        }
 
         $words = $this->vocabularyRepository->getUserUnlearnedVocabulary($userId, $query->langId, $query->limit);
         $wordsCount = count($words);
@@ -47,7 +52,8 @@ class ExerciseService{
     /**
      * @return \models\response\ExerciseResultResponse[]
      */
-    public function getUserResults() : array {
+    public function getUserResults(): array
+    {
         $userId = $this->authService->getAuthenticatedUserId();
 
         $results = $this->exerciseRepository->getLanguageExerciseResultsOfUser($userId);
@@ -55,7 +61,8 @@ class ExerciseService{
         return ExerciseResultMapper::mapToResultsResponse($results);
     }
 
-    public function createExerciseResult(CreateExerciseResultRequest $request) : void{
+    public function createExerciseResult(CreateExerciseResultRequest $request): void
+    {
         $userId = $this->authService->getAuthenticatedUserId();
 
         $exerciseResult =  ExerciseResultMapper::mapToExerciseResult($request, $userId);
@@ -64,6 +71,6 @@ class ExerciseService{
 
         if ($result === false) {
             throw new Exception("Failed to create exercise result", 101);
-        }        
+        }
     }
 }
