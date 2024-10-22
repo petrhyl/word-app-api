@@ -7,6 +7,7 @@ use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
 use models\response\ExerciseItemResponse;
 use models\response\ExerciseResponse;
+use utils\Constants;
 
 class VocabularyMapper
 {
@@ -35,9 +36,12 @@ class VocabularyMapper
             $words[] = self::mapToExerciseItemResponse($item);
         }
 
+        $languageName = Constants::allLanguages()[$language->Code]['name'];
+
         $exercise = new ExerciseResponse();
         $exercise->languageId = $language->Id;
         $exercise->languageCode = $language->Code;
+        $exercise->languageName = $languageName;
 
         $exercise->words = $words;
 

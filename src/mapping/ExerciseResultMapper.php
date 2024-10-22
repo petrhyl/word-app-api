@@ -6,6 +6,8 @@ use models\domain\exercise\ExerciseResult;
 use models\domain\exercise\LanguageExerciseResult;
 use models\request\CreateExerciseResultRequest;
 use models\response\ExerciseResultResponse;
+use models\response\VocabularyLanguageResponse;
+use utils\Constants;
 
 class ExerciseResultMapper
 {
@@ -26,8 +28,13 @@ class ExerciseResultMapper
     {
         $response = new ExerciseResultResponse();
 
-        $response->userId = $exerciseResult->UserId;
-        $response->vocabularyLanguageId = $exerciseResult->VocabularyLanguageId;
+        $languageName = Constants::allLanguages()[$exerciseResult->VocabularyLanguageCode]['name'];
+
+        $response->language = new VocabularyLanguageResponse();
+        $response->language->id = $exerciseResult->VocabularyLanguageId;
+        $response->language->code = $exerciseResult->VocabularyLanguageCode;
+        $response->language->name = $languageName;
+        $response->language->userId = $exerciseResult->UserId;
         $response->successRate = self::calculateSuccessRate($exerciseResult->CorrectAnswers, $exerciseResult->IncorrectAnswers);
         $totalAnswered = $exerciseResult->CorrectAnswers + $exerciseResult->IncorrectAnswers;
         $response->totalAnsweredWords = $totalAnswered;

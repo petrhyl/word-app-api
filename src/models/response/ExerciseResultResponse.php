@@ -4,8 +4,7 @@ namespace models\response;
 
 class ExerciseResultResponse
 {
-    public int $userId;
-    public int $vocabularyLanguageId;
+    public VocabularyLanguageResponse $language;
     public float $successRate;
     public int $totalAnsweredWords;
     public int $answeredWordsAverage;

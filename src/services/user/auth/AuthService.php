@@ -205,9 +205,8 @@ class AuthService
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
-            self::NAME_CLAIM => $user->Name,
             self::EMAIL_CLAIM => $user->Email,
-            self::EXPIRE_IN_CLAIM => $expiryTimestamp
+            self::EXPIRE_IN_CLAIM => $secondsToExpire
         ];
 
         $token = $this->tokenService->createToken($claims);
@@ -221,7 +220,7 @@ class AuthService
 
         $claims = [
             self::USER_ID_CLAIM => $user->Id,
-            self::EXPIRE_IN_CLAIM => $expiryTimestamp
+            self::EXPIRE_IN_CLAIM => $secondsToExpire
         ];
 
         $refreshToken = $this->tokenService->createToken($claims);

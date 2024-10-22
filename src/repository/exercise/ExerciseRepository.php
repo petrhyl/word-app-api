@@ -22,6 +22,11 @@ class ExerciseRepository
         $this->conn = $database->getConnection();
     }
 
+    private const GET_EXERCISE_RESULT_QUERY =
+    "SELECT UserId, VocabularyLanguageId, vl.Code AS VocabularyLanguageCode, SUM(CorrectAnswers) AS CorrectAnswers, SUM(IncorrectAnswers) AS IncorrectAnswers, COUNT(Id) AS ExercisesCount
+         FROM Wordapp_ExerciseResults 
+         INNER JOIN Wordapp_VocabularyLanguages AS vl ON Wordapp_ExerciseResults.VocabularyLanguageId = vl.Id ";
+
     public function create(ExerciseResult $exercise): bool
     {
         $command = "INSERT INTO Wordapp_ExerciseResults (UserId, VocabularyLanguageId, CorrectAnswers, IncorrectAnswers)
@@ -97,10 +102,9 @@ class ExerciseRepository
 
     public function getLanguageExerciseResultOfUser(int $userId, int $languageId): LanguageExerciseResult | null
     {
-        $query = "SELECT UserId, VocabularyLanguageId, SUM(CorrectAnswers) AS CorrectAnswers, SUM(IncorrectAnswers) AS IncorrectAnswers, COUNT(Id) AS ExercisesCount
-         FROM Wordapp_ExerciseResults 
+        $query = self::GET_EXERCISE_RESULT_QUERY . "
         WHERE UserId = :userId AND VocabularyLanguageId = :languageId
-        GROUP BY VocabularyLanguageId";
+        GROUP BY VocabularyLanguageId, VocabularyLanguageCode";
 
         $stmt = $this->conn->prepare($query);
 
@@ -120,10 +124,9 @@ class ExerciseRepository
      */
     public function getLanguageExerciseResultsOfUser(int $userId): array
     {
-        $query = "SELECT UserId, VocabularyLanguageId, SUM(CorrectAnswers) AS CorrectAnswers, SUM(IncorrectAnswers) AS IncorrectAnswers, COUNT(Id) AS ExercisesCount
-         FROM Wordapp_ExerciseResults 
+        $query = self::GET_EXERCISE_RESULT_QUERY . "
         WHERE UserId = :userId
-        GROUP BY VocabularyLanguageId";
+        GROUP BY VocabularyLanguageId, VocabularyLanguageCode";
 
         $stmt = $this->conn->prepare($query);
 
