@@ -22,11 +22,11 @@ class LanguageService
      */
     public function getAllowedLanguages(): array
     {
-        return array_values(Constants::allowedLanguages());
+        return LanguageMapper::mapLanguagesToResponse(Constants::allowedLanguages());
     }
 
     /**
-     * @return \models\domain\language\VocabularyLanguage[]
+     * @return \models\response\VocabularyLanguageResponse[]
      */
     public function getUserVacabularyLanguages(): array
     {
@@ -34,7 +34,7 @@ class LanguageService
 
         $languages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
 
-        return LanguageMapper::mapLanguagesToResponse($languages);
+        return LanguageMapper::mapVocabularyLanguagesToResponse($languages);
     }
 
     /**
@@ -51,7 +51,7 @@ class LanguageService
         if (count($userLanguages) > 14) {
             throw new ApplicationException("User can have up to 15 languages", 422);
         }
-       
+
         foreach ($userLanguages as $lang) {
             if ($lang->Code === $language) {
                 return $lang;
