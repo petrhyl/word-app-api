@@ -28,7 +28,7 @@ class VocabularyMapper
      * @return \models\response\ExerciseResponse
      */
     public static function mapToExerciseResponse(array $vocabularyItems, VocabularyLanguage $language): ExerciseResponse
-    {        
+    {
         $words = [];
 
         foreach ($vocabularyItems as $item) {
@@ -44,23 +44,24 @@ class VocabularyMapper
         return $exercise;
     }
 
-     /**
+    /**
      * @param CreateVocabularyRequest $request
      * @return VocabularyItem[]
      */
-    public static function mapCreateRequestToVocabularyItems(CreateVocabularyRequest $request, int $userId, int $languageId) : array {
+    public static function mapCreateRequestToVocabularyItems(CreateVocabularyRequest $request, int $userId): array
+    {
         $items = [];
         foreach ($request->vocabularyItems as $requestItem) {
             $item = new VocabularyItem();
             $item->UserId = $userId;
             $item->Value = $requestItem->word;
-            $item->VocabularyLanguageId = $languageId;
+            $item->VocabularyLanguageId = $request->languageId;
             $item->IsLearned = false;
             $item->CorrectAnswers = 0;
             $item->Translations = implode(';', $requestItem->translations);
             $items[] = $item;
-        } 
-        
+        }
+
         return $items;
     }
 }
