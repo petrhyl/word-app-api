@@ -4,31 +4,51 @@ namespace mapping;
 
 use models\domain\language\VocabularyLanguage;
 use models\response\LanguageResponse;
+use models\response\VocabularyLanguageResponse;
+use utils\Constants;
 
 class LanguageMapper
 {
-    public static function mapLanguageToResponse(VocabularyLanguage $language): LanguageResponse
+    public static function mapVocabularyLanguageToResponse(VocabularyLanguage $language): VocabularyLanguageResponse
     {
-        $response = new LanguageResponse();
+        $response = new VocabularyLanguageResponse();
         $response->id = $language->Id;
         $response->userId = $language->UserId;
         $response->code = $language->Code;
+        $response->name = Constants::allLanguages()[$language->Code]['name'];
 
         return $response;
     }
 
     /**
      * @param VocabularyLanguage[] $languages
-     * @return LanguageResponse[]
+     * @return VocabularyLanguageResponse[]
      */
-    public static function mapLanguagesToResponse(array $languages): array
+    public static function mapVocabularyLanguagesToResponse(array $languages): array
     {
         $response = [];
 
         foreach ($languages as $language) {
-            $response[] = self::mapLanguageToResponse($language);
+            $response[] = self::mapVocabularyLanguageToResponse($language);
         }
 
         return $response;
-    }    
+    }
+
+    /**
+     * @param array $languages array of nested arrays with keys 'code' and 'name'
+     * @return \models\response\LanguageResponse[]
+     */
+    public static function mapLanguagesToResponse(array $languages): array
+    {
+        $responses = [];
+        foreach ($languages as $language) {
+            $response = new LanguageResponse();
+            $response->code = $language['code'];
+            $response->name = $language['name'];
+            $responses[] = $response;
+        }
+
+        return $responses;
+    }
 }

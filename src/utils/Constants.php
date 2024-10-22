@@ -3,18 +3,32 @@
 namespace utils;
 
 class Constants
-{
+{    
+    private static array $nonLatinLanguageCodes = ['am', 'ar', 'hy', 'be', 'bn', 'bg', 'zh', 'ka', 'el', 'gu', 'he', 'hi', 'ja', 
+    'kn', 'kk', 'km', 'rw', 'ko', 'ku', 'ky', 'lo', 'mk', 'ml', 'mn', 'ms', 'my', 'ne', 
+    'or', 'ps', 'fa', 'pa', 'ru', 'sr', 'sd', 'si', 'tg', 'ta', 'tt', 'te', 'th', 
+    'ug', 'uk', 'uz', 'vi', 'xh', 'yi', 'yo', 'zu'];
+
+    private static array $otherUnwantedLanguageCodes = ['af', 'az', 'ca', 'co', 'eu', 'ny', 'fy', 'gl', 'ha', 'ht', 'ig', 'jw', 'id', 'mb', 'mg', 'mi', 'mr', 'mt', 'st', 'sm', 'sn', 'so', 'su', 'sw', 'tk', 'tl', 'ur', 'cy'];
+ 
     public const DATABASE_DATETIME_FORMAT = 'Y-m-d H:i:s';
-    
+
+    /**
+     * @return array of nested arrays with keys 'code' and 'name'
+     */
     public static function allowedLanguages()
     {
-        return [
-            'en' => 'en',
-            'cs' => 'cs'
-        ];
+        $allLanguages = self::allLanguages();
+        $unwantedCodes = array_merge(self::$nonLatinLanguageCodes, self::$otherUnwantedLanguageCodes);
+        
+        return array_filter($allLanguages, fn($language) => !in_array($language['code'], $unwantedCodes));
     }
 
-    public static function languageCodes(){
+    /**
+     * @return array of nested arrays with keys 'code' and 'name'
+     */
+    public static function allLanguages()
+    {
         return [
             'af' => ['code' => 'af', 'name' => 'Afrikaans'],
             'sq' => ['code' => 'sq', 'name' => 'Albanian'],
@@ -122,6 +136,16 @@ class Constants
             'yo' => ['code' => 'yo', 'name' => 'Yoruba'],
             'zu' => ['code' => 'zu', 'name' => 'Zulu']
         ];
+    }
+
+    /**
+     * @return array of nested arrays with keys 'code' and 'name'
+     */
+    public static function latinLanguages(): array
+    {
+        $allLanguages = self::allLanguages();
+        
+        return array_filter($allLanguages, fn($language) => !in_array($language['code'], self::$nonLatinLanguageCodes));
     }
 
     public static function rootDir(): string
