@@ -24,7 +24,12 @@ abstract class Validator implements IValidator
     public function throwExceptionIfAnyError(): void
     {
         if (!empty($this->error->invalidProperties) || !empty($this->error->validationMessages)) {
-            throw new ApplicationException("Invalid request structure's value(s).", 422, 100, ['validation' => [ 'properties' => $this->error->invalidProperties], ['messages' => $this->error->validationMessages]]);
+            throw new ApplicationException(
+                "Invalid request structure's value(s).",
+                422,
+                100,
+                ['validation' => [['properties' => $this->error->invalidProperties], ['messages' => $this->error->validationMessages]]]
+            );
         }
     }
 
@@ -38,7 +43,7 @@ abstract class Validator implements IValidator
         $invalidProperty = new InvalidPropertyError();
         $invalidProperty->propertyName = $propertyName;
         $invalidProperty->details = $errorDetails;
-        
+
         $this->error->invalidProperties[] = $invalidProperty;
     }
 }

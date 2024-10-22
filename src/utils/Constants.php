@@ -14,7 +14,7 @@ class Constants
     public const DATABASE_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
     /**
-     * @return array of nested arrays with keys 'code' and 'name'
+     * @return array assoc array with `keys` as language code and `values` as nested array with keys 'code' and 'name'
      */
     public static function allowedLanguages()
     {
@@ -25,7 +25,7 @@ class Constants
     }
 
     /**
-     * @return array of nested arrays with keys 'code' and 'name'
+     * @return array assoc array with `keys` as language code and `values` as nested array with keys 'code' and 'name'
      */
     public static function allLanguages()
     {
@@ -139,7 +139,7 @@ class Constants
     }
 
     /**
-     * @return array of nested arrays with keys 'code' and 'name'
+     * @return array assoc array with `keys` as language code and `values` as nested array with keys 'code' and 'name'
      */
     public static function latinLanguages(): array
     {

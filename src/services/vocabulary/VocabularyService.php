@@ -26,9 +26,13 @@ class VocabularyService
     {
         $userId = $this->authService->getAuthenticatedUserId();
 
-        $language = $this->languageService->createVocabularyLanguageIfDoesNotExist($request->language, $userId);
+        $language = $this->languageRepository->getVocabularyLanguageById($request->languageId);
 
-        $items = VocabularyMapper::mapCreateRequestToVocabularyItems($request, $userId, $language->Id);
+        if ($language === null || $language->UserId !== $userId) {
+            throw new ApplicationException("User vocabulary language not found", 404);
+        }
+
+        $items = VocabularyMapper::mapCreateRequestToVocabularyItems($request, $userId);
 
         try {
             $result = $this->vocabularyRepository->createVocabulary($items);

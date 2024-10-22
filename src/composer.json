@@ -52,6 +52,7 @@
             "validators\\user\\": "validators/user",
             "validators\\vocabulary\\": "validators/vocabulary",
             "validators\\exercise\\": "validators/exercise",
+            "validators\\language\\": "validators/language",
             "middlewares\\": "middlewares",
             "mapping\\": "mapping",
             "utils\\": "utils"

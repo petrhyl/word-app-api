@@ -4,7 +4,7 @@ namespace models\request;
 
 class CreateVocabularyRequest
 {
-    public string $language;
+    public int $languageId;
     /**
      * @var \models\request\CreateVocabularyRequestItem[]
      */

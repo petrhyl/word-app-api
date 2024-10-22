@@ -5,6 +5,7 @@ namespace services\language;
 use Exception;
 use mapping\LanguageMapper;
 use models\domain\language\VocabularyLanguage;
+use models\response\VocabularyLanguageResponse;
 use repository\language\LanguageRepository;
 use services\user\auth\AuthService;
 use utils\Constants;
@@ -37,6 +38,14 @@ class LanguageService
         return LanguageMapper::mapVocabularyLanguagesToResponse($languages);
     }
 
+    public function createUserVocabularyLanguage(string $languageCode) : VocabularyLanguageResponse {
+        $userId = $this->authService->getAuthenticatedUserId();
+
+        $language = $this->getUserVocabularyLanguageOrCreateIfDoesNotExist($languageCode, $userId);
+
+        return LanguageMapper::mapVocabularyLanguageToResponse($language);
+    }
+
     /**
      * @param string $language
      * @param int $userId
@@ -44,18 +53,18 @@ class LanguageService
      * @throws ApplicationException
      * @throws Exception
      */
-    public function createVocabularyLanguageIfDoesNotExist(string $language, int $userId): VocabularyLanguage
+    public function getUserVocabularyLanguageOrCreateIfDoesNotExist(string $language, int $userId): VocabularyLanguage
     {
-        $userLanguages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);
-
-        if (count($userLanguages) > 14) {
-            throw new ApplicationException("User can have up to 15 languages", 422);
-        }
+        $userLanguages = $this->languageRepository->getVacabularyLanguagesOfUser($userId);        
 
         foreach ($userLanguages as $lang) {
             if ($lang->Code === $language) {
                 return $lang;
             }
+        }
+
+        if (count($userLanguages) > 14) {
+            throw new ApplicationException("User can have up to 15 languages", 422);
         }
 
         $userLanguage = new VocabularyLanguage();

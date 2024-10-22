@@ -14,17 +14,15 @@ class CreateVocabularyRequestValidator extends Validator{
      * @param \models\request\CreateVocabularyRequest $object
      */
     public function validate($object): void{
-        if (empty($object->language)) {
-            $this->addInvalidProperty("language", "Language can not be empty.");
-        }
-
-        if (!array_key_exists($object->language, Constants::languageCodes())) {
-            $this->addInvalidProperty("language", "Not applicable language alpha-2 code.");
+        if (empty($object->languageId)) {
+            $this->addInvalidProperty("languageId", "Language ID can not be empty.");
         }
 
         if (empty($object->vocabularyItems)) {
             $this->addInvalidProperty("vocabularyItems", "Vocabulary items are not provided.");
         }
+
+        $this->throwExceptionIfAnyError();
 
         foreach ($object->vocabularyItems as $vocabularyItem) {
             if (empty($vocabularyItem->word)) {
