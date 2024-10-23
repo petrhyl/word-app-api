@@ -2,6 +2,7 @@
 
 namespace services\vocabulary;
 
+use config\ErrorHandler;
 use DateTime;
 use Exception;
 use mapping\VocabularyMapper;
@@ -41,8 +42,20 @@ class VocabularyService
                 throw new Exception("Failed to create user's vocabulary", 101);
             }
         } catch (\Throwable $th) {
-            if ($th->getCode() === 23000) {
-                throw new ApplicationException("Provided word already exists in user's vocabulary", 409);
+            if (strval($th->getCode()) === "23000") {
+                $existingWord = null;
+                $existingWordErrorPattern = "/Duplicate entry '(\d+)-(\w+)-(\d+)' for key/u";
+
+                if (preg_match($existingWordErrorPattern, $th->getMessage(), $matches)) {
+                    $existingWord = $matches[2];
+                }
+
+                throw new ApplicationException(
+                    "Provided word already exists in user's vocabulary",
+                    409,
+                    100,
+                    ["existingWord" => $existingWord ?? ""]
+                );
             } else {
                 throw $th;
             }
