@@ -21,11 +21,7 @@ class EndpointRegistrator
 
         $this->router->post('word-app/api/vocabularies', vocabularies\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies/check', vocabularies\CheckIfWordExists::class, [AuthorizationMiddleware::class]);
-        $this->router->post(
-            'word-app/api/vocabularies/items/{id}',
-            vocabularies\UpdateUserVocabularyItemTranslations::class,
-            [AuthorizationMiddleware::class]
-        );
+        $this->router->post('word-app/api/vocabularies/items/{id}', vocabularies\UpdateUserVocabularyItem::class, [AuthorizationMiddleware::class]);
 
         $this->router->get('word-app/api/exercises', exercises\GetExercise::class, [AuthorizationMiddleware::class]);
         $this->router->get('word-app/api/exercises/results', exercises\GetResults::class, [AuthorizationMiddleware::class]);

@@ -6,7 +6,7 @@ use endpoints\BaseEndpoint;
 use models\request\UpdateVocabularyItemRequest;
 use services\vocabulary\VocabularyService;
 
-class UpdateUserVocabularyItemTranslations extends BaseEndpoint
+class UpdateUserVocabularyItem extends BaseEndpoint
 {
     public function __construct(
         private readonly VocabularyService $vocabularyService

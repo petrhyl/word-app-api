@@ -83,8 +83,7 @@ class VocabularyService
             throw new ApplicationException("User vocabulary language not found", 404);
         }
 
-        $item = $this->vocabularyRepository->getVocabularyItem($id);
-        $item->Translations = implode(';', $request->translations);
+        $item = VocabularyMapper::mapUpdateRequestToVocabularyItem($request, $existingItem);
         $item->setUpdatedAt(new DateTime());
 
         $result = $this->vocabularyRepository->updateVocabularyItem($item);

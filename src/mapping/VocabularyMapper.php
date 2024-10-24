@@ -5,6 +5,7 @@ namespace mapping;
 use models\domain\language\VocabularyLanguage;
 use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
+use models\request\UpdateVocabularyItemRequest;
 use models\response\ExerciseItemResponse;
 use models\response\ExerciseResponse;
 use utils\Constants;
@@ -67,5 +68,19 @@ class VocabularyMapper
         }
 
         return $items;
+    }
+
+    public static function mapUpdateRequestToVocabularyItem(UpdateVocabularyItemRequest $request, VocabularyItem $existingItem): VocabularyItem
+    {
+        $item = new VocabularyItem();
+        $item->Id = $existingItem->Id;
+        $item->UserId = $existingItem->UserId;
+        $item->Value = $request->word;
+        $item->VocabularyLanguageId = $existingItem->VocabularyLanguageId;
+        $item->IsLearned = $existingItem->IsLearned;
+        $item->CorrectAnswers = $existingItem->CorrectAnswers;
+        $item->Translations = implode(';', $request->translations);
+
+        return $item;
     }
 }
