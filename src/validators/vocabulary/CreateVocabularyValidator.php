@@ -2,10 +2,9 @@
 
 namespace validators\vocabulary;
 
-use utils\Constants;
 use validators\common\Validator;
 
-class CreateVocabularyRequestValidator extends Validator{
+class CreateVocabularyValidator extends Validator{
     public function __construct() {
         parent::__construct();
     }

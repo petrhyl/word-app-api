@@ -2,7 +2,7 @@
 
 namespace models\request;
 
-class UpdateVocabularyItemTranslationsRequest{
+class UpdateVocabularyItemRequest{
     public string $word;
     public int $languageId;
     /**

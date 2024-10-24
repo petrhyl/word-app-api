@@ -5,13 +5,13 @@ namespace endpoints\vocabularies;
 use endpoints\BaseEndpoint;
 use models\request\CreateVocabularyRequest;
 use services\vocabulary\VocabularyService;
-use validators\vocabulary\CreateVocabularyRequestValidator;
+use validators\vocabulary\CreateVocabularyValidator;
 
 class CreateUserVocabulary extends BaseEndpoint
 {
     public function __construct(
         private readonly VocabularyService $vocabularyService,
-        private readonly CreateVocabularyRequestValidator $validator) {}
+        private readonly CreateVocabularyValidator $validator) {}
 
     public function __invoke(CreateVocabularyRequest $payload)
     {             

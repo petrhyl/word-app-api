@@ -4,7 +4,7 @@ namespace validators\exercise;
 
 use validators\common\Validator;
 
-class CreateExerciseResultRequestValidator extends Validator
+class CreateExerciseResultValidator extends Validator
 {
     public function __construct()
     {

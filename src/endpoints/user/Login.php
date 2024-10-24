@@ -5,13 +5,13 @@ namespace endpoints\user;
 use endpoints\BaseEndpoint;
 use models\request\LoginRequest;
 use services\user\UserService;
-use validators\user\LoginRequestValidator;
+use validators\user\LoginValidator;
 
 class Login extends BaseEndpoint
 {
     public function __construct(
         private readonly UserService $userService,
-        private readonly LoginRequestValidator $validator
+        private readonly LoginValidator $validator
     ) {}
 
     public function __invoke(LoginRequest $payload)

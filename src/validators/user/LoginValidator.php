@@ -5,7 +5,7 @@ namespace validators\user;
 use validators\common\ValidatorUtils;
 use validators\common\Validator;
 
-class LoginRequestValidator extends Validator
+class LoginValidator extends Validator
 {
     public function __construct()
     {

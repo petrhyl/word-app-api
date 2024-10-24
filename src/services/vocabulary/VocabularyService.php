@@ -6,8 +6,9 @@ use config\ErrorHandler;
 use DateTime;
 use Exception;
 use mapping\VocabularyMapper;
+use models\request\CheckIfWordExistsRequest;
 use models\request\CreateVocabularyRequest;
-use models\request\UpdateVocabularyItemTranslationsRequest;
+use models\request\UpdateVocabularyItemRequest;
 use repository\language\LanguageRepository;
 use repository\vocabulary\VocabularyRepository;
 use services\language\LanguageService;
@@ -62,7 +63,7 @@ class VocabularyService
         }
     }
 
-    public function updateVocabularyItemTranslations(UpdateVocabularyItemTranslationsRequest $request, int $id): void
+    public function updateVocabularyItem(UpdateVocabularyItemRequest $request, int $id): void
     {
         $existingItem = $this->vocabularyRepository->getVocabularyItem($id);
 
@@ -91,5 +92,17 @@ class VocabularyService
         if ($result === false) {
             throw new Exception("Failed to update vocabulary item", 101);
         }
+    }
+
+    public function checkIfWordExists(CheckIfWordExistsRequest $request):bool{
+        $userId = $this->authService->getAuthenticatedUserId();        
+
+        $result = $this->vocabularyRepository->getUserVocabularyItem($userId , $request->languageId, $request->word);
+
+        if ($result === null) {
+            return false;
+        }
+
+        return true;
     }
 }

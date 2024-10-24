@@ -57,6 +57,21 @@ class VocabularyRepository
         return empty($result) ? null : $result;
     }
 
+    public function getUserVocabularyItem(int $userId, int $languageId, string $word): VocabularyItem | null
+    {
+        $stmt = $this->conn->prepare(self::GET_WORD_QUERY . " WHERE UserId = :user AND VocabularyLanguageId = :lang AND Value = :val");
+
+        $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':lang', $languageId, PDO::PARAM_INT);
+        $stmt->bindValue(':val', $word, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        $result = $stmt->fetchObject(VocabularyItem::class);
+
+        return empty($result) ? null : $result;
+    }
+
     /**
      * @param VocabularyItem[] $vocabularyItems
      */
