@@ -4,7 +4,7 @@ namespace validators\vocabulary;
 
 use validators\common\Validator;
 
-class UpdateVocabularyItemTranslationsRequestValidator extends Validator
+class UpdateVocabularyItemValidator extends Validator
 {
     public function __construct()
     {
@@ -12,7 +12,7 @@ class UpdateVocabularyItemTranslationsRequestValidator extends Validator
     }
 
     /**
-     * @param \models\request\UpdateVocabularyItemTranslationsRequest $object
+     * @param \models\request\UpdateVocabularyItemRequest $object
      */
     public function validate($object): void
     {

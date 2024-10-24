@@ -3,7 +3,7 @@
 namespace endpoints\vocabularies;
 
 use endpoints\BaseEndpoint;
-use models\request\UpdateVocabularyItemTranslationsRequest;
+use models\request\UpdateVocabularyItemRequest;
 use services\vocabulary\VocabularyService;
 
 class UpdateUserVocabularyItemTranslations extends BaseEndpoint
@@ -12,9 +12,9 @@ class UpdateUserVocabularyItemTranslations extends BaseEndpoint
         private readonly VocabularyService $vocabularyService
     ) {}
 
-    public function __invoke(UpdateVocabularyItemTranslationsRequest $payload, $id): void
+    public function __invoke(UpdateVocabularyItemRequest $payload, $id): void
     {
-        $this->vocabularyService->updateVocabularyItemTranslations($payload, $id);
+        $this->vocabularyService->updateVocabularyItem($payload, $id);
 
         $this->respondAndDie(["message" => "Vocabulary item updated"]);
     }

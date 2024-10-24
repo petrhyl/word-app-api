@@ -20,6 +20,7 @@ class EndpointRegistrator
         $this->router->post('word-app/api/user/send', user\SendVerificationEmail::class);
 
         $this->router->post('word-app/api/vocabularies', vocabularies\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
+        $this->router->post('word-app/api/vocabularies/check', vocabularies\CheckIfWordExists::class, [AuthorizationMiddleware::class]);
         $this->router->post(
             'word-app/api/vocabularies/items/{id}',
             vocabularies\UpdateUserVocabularyItemTranslations::class,

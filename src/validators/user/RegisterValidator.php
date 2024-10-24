@@ -6,7 +6,7 @@ use utils\Constants;
 use validators\common\ValidatorUtils;
 use validators\common\Validator;
 
-class RegisterRequestValidator extends Validator
+class RegisterValidator extends Validator
 {
     public function __construct()
     {

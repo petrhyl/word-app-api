@@ -5,13 +5,13 @@ namespace endpoints\user;
 use endpoints\BaseEndpoint;
 use models\request\RegisterRequest;
 use services\user\UserService;
-use validators\user\RegisterRequestValidator;
+use validators\user\RegisterValidator;
 
 class Register extends BaseEndpoint
 {
     public function __construct(
         private readonly UserService $userService,
-        private readonly RegisterRequestValidator $validator
+        private readonly RegisterValidator $validator
     ) {}
 
     public function __invoke(RegisterRequest $payload)
