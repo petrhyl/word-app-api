@@ -36,6 +36,19 @@ class LanguageMapper
     }
 
     /**
+     * @param array $language array with keys 'code' and 'name'
+     * @return \models\response\LanguageResponse
+     */
+    public static function mapToLanguageResponse(array $language): LanguageResponse
+    {
+        $response = new LanguageResponse();
+        $response->code = $language['code'];
+        $response->name = $language['name'];
+
+        return $response;
+    }
+
+    /**
      * @param array $languages array of nested arrays with keys 'code' and 'name'
      * @return \models\response\LanguageResponse[]
      */
@@ -43,10 +56,7 @@ class LanguageMapper
     {
         $responses = [];
         foreach ($languages as $language) {
-            $response = new LanguageResponse();
-            $response->code = $language['code'];
-            $response->name = $language['name'];
-            $responses[] = $response;
+            $responses[] = self::mapToLanguageResponse($language);
         }
 
         return $responses;

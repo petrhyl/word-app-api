@@ -2,13 +2,14 @@
 
 namespace services\vocabulary;
 
-use config\ErrorHandler;
 use DateTime;
 use Exception;
 use mapping\VocabularyMapper;
 use models\request\CheckIfWordExistsRequest;
 use models\request\CreateVocabularyRequest;
+use models\request\PagedQuery;
 use models\request\UpdateVocabularyItemRequest;
+use models\response\LanguageVocabularyResponse;
 use repository\language\LanguageRepository;
 use repository\vocabulary\VocabularyRepository;
 use services\language\LanguageService;
@@ -23,6 +24,23 @@ class VocabularyService
         private readonly LanguageRepository $languageRepository,
         private readonly AuthService $authService
     ) {}
+
+    public function getVocabularyOfLanguage($langId, PagedQuery $paging) : LanguageVocabularyResponse
+    {
+        $userId = $this->authService->getAuthenticatedUserId();
+
+        $language = $this->languageRepository->getVocabularyLanguageById($langId);
+
+        if ($language === null || $language->UserId !== $userId) {
+            throw new ApplicationException("User's vocabulary language not found", 404);
+        }
+
+        $items = $this->vocabularyRepository->getUserVocabulary($userId, $langId, $paging->limit, $paging->offset);
+
+        $response = VocabularyMapper::mapToLanguageVocabularyResponse($language, $items);
+
+        return $response;        
+    }
 
     public function createVocabulary(CreateVocabularyRequest $request): void
     {

@@ -6,15 +6,16 @@ use models\domain\language\VocabularyLanguage;
 use models\domain\vocabulary\VocabularyItem;
 use models\request\CreateVocabularyRequest;
 use models\request\UpdateVocabularyItemRequest;
-use models\response\ExerciseItemResponse;
+use models\response\VocabularyItemResponse;
 use models\response\ExerciseResponse;
+use models\response\LanguageVocabularyResponse;
 use utils\Constants;
 
 class VocabularyMapper
 {
-    public static function mapToExerciseItemResponse(VocabularyItem $word)
+    public static function mapToVocabularyItemResponse(VocabularyItem $word)
     {
-        $item = new ExerciseItemResponse();
+        $item = new VocabularyItemResponse();
         $item->id = $word->Id;
         $item->word = $word->Value;
         $item->updatedAt = $word->updatedAt()->format('c');
@@ -34,7 +35,7 @@ class VocabularyMapper
         $words = [];
 
         foreach ($vocabularyItems as $item) {
-            $words[] = self::mapToExerciseItemResponse($item);
+            $words[] = self::mapToVocabularyItemResponse($item);
         }
 
         $languageName = Constants::allLanguages()[$language->Code]['name'];
@@ -47,6 +48,18 @@ class VocabularyMapper
         $exercise->words = $words;
 
         return $exercise;
+    }
+
+    public static function mapToLanguageVocabularyResponse(VocabularyLanguage $language, array $items) : LanguageVocabularyResponse
+    {
+        $response = new LanguageVocabularyResponse();
+
+        $languageAssocArray = Constants::allLanguages()[$language->Code];
+
+        $response->language = LanguageMapper::mapToLanguageResponse($languageAssocArray);
+        $response->items = array_map(fn($item) => self::mapToVocabularyItemResponse($item), $items);
+
+        return $response;        
     }
 
     /**

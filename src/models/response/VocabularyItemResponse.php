@@ -2,7 +2,7 @@
 
 namespace models\response;
 
-class ExerciseItemResponse
+class VocabularyItemResponse
 {
     public int $id;
     public string $word;

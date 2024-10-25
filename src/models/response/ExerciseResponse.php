@@ -8,7 +8,7 @@ class ExerciseResponse
     public string $languageCode;
     public string $languageName;
     /**
-     * @var \models\response\ExerciseItemResponse[]
+     * @var \models\response\VocabularyItemResponse[]
      */
     public array $words;
 }

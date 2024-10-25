@@ -19,30 +19,55 @@ class VocabularyRepository
     private const GET_WORD_QUERY = "SELECT * FROM Wordapp_Vocabularies";
     private const ORDER_BY_QUERY = " ORDER BY UpdatedAt ASC, CorrectAnswers ASC";
 
+
     /**
      * @return VocabularyItem[]
      */
-    public function getUserUnlearnedVocabulary(int $userId, string $languageId, int $limit): array
+    public function getUserVocabulary(int $userId, int $languageId, int $limit, int $offset) : array
+    {
+        $query = self::GET_WORD_QUERY . " WHERE UserId = :user AND VocabularyLanguageId = :lang LIMIT :lim OFFSET :off";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':lang', $languageId, PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $result = $stmt->fetchAll(PDO::FETCH_CLASS, VocabularyItem::class);
+
+        if (empty($result)) {
+            return [];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return VocabularyItem[]
+     */
+    public function getUserUnlearnedVocabulary(int $userId, int $languageId, int $limit): array
     {
         $query = self::GET_WORD_QUERY .
             " WHERE UserId = :user AND VocabularyLanguageId = :lang AND IsLearned = 0" .
             self::ORDER_BY_QUERY .
             " LIMIT :lim";
 
-        return $this->getUserVocabulary($userId, $languageId, $query, $limit);
+        return $this->getVocabulary($userId, $languageId, $query, $limit);
     }
 
     /**
      * @return VocabularyItem[]
      */
-    public function getUserLearnedVocabulary(int $userId, string $language, int $limit): array
+    public function getUserLearnedVocabulary(int $userId, int $language, int $limit): array
     {
         $query = self::GET_WORD_QUERY .
             " WHERE UserId = :user AND VocabularyLanguageId = :lang AND IsLearned = 1" .
             self::ORDER_BY_QUERY
             . " LIMIT :lim";
 
-        return $this->getUserVocabulary($userId, $language, $query, $limit);
+        return $this->getVocabulary($userId, $language, $query, $limit);
     }
 
     public function getVocabularyItem(int $id): VocabularyItem | null
@@ -134,7 +159,7 @@ class VocabularyRepository
     /**
      * @return VocabularyItem[]
      */
-    private function getUserVocabulary(int $userId, string $languageId, string $query, int $limit): array
+    private function getVocabulary(int $userId, int $languageId, string $query, int $limit): array
     {
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':user', $userId, PDO::PARAM_INT);

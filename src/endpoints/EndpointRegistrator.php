@@ -16,9 +16,10 @@ class EndpointRegistrator
         $this->router->post('word-app/api/user/logout', user\Logout::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/user/register', user\Register::class);
         $this->router->post('word-app/api/user/refresh', user\Refresh::class);
-        $this->router->post('word-app/api/user/verification/{key}', user\Verification::class);
+        $this->router->post('word-app/api/user/verify/{key}', user\Verification::class);
         $this->router->post('word-app/api/user/send', user\SendVerificationEmail::class);
 
+        $this->router->get('word-app/api/vocabularies/{langId}', vocabularies\GetLanguageVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies', vocabularies\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies/check', vocabularies\CheckIfWordExists::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies/items/{id}', vocabularies\UpdateUserVocabularyItem::class, [AuthorizationMiddleware::class]);
