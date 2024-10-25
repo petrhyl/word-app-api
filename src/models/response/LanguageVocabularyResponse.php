@@ -3,7 +3,7 @@
 namespace models\response;
 
 class LanguageVocabularyResponse{
-    public LanguageResponse $language;
+    public VocabularyLanguageResponse $language;
     /**
      * @var \models\response\VocabularyItemResponse[]
      */

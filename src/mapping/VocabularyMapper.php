@@ -54,9 +54,7 @@ class VocabularyMapper
     {
         $response = new LanguageVocabularyResponse();
 
-        $languageAssocArray = Constants::allLanguages()[$language->Code];
-
-        $response->language = LanguageMapper::mapToLanguageResponse($languageAssocArray);
+        $response->language = LanguageMapper::mapVocabularyLanguageToResponse($language);
         $response->items = array_map(fn($item) => self::mapToVocabularyItemResponse($item), $items);
 
         return $response;        
