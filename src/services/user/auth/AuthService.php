@@ -69,7 +69,7 @@ class AuthService
      */
     public function login(User $user, string $password): ?User
     {
-        if (!password_verify($password, $user->PasswordHash)) {
+        if (!$this->isUserPasswordValid($user, $password)) {
             return null;
         }
 
@@ -110,6 +110,7 @@ class AuthService
 
     /**
      * @return \models\domain\user\User|null returns `null` if refresh token is not stored in database with user id
+     * @throws \Exception if failed to delete refresh token from database
      */
     public function refreshTokens(User $user): ?User
     {
@@ -124,8 +125,7 @@ class AuthService
         $result = $this->tokenRepository->delete($hashedToken, $user->Id);
 
         if ($result === false) {
-            $ex = new Exception("Failed to delete refresh token [ $hashedToken ] from database", 101);
-            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
+            throw new Exception("Failed to delete refresh token [ $hashedToken ] from database", 101);
         }
 
         return $this->createTokensAndAssignThemToUser($user);
@@ -156,6 +156,32 @@ class AuthService
         }
 
         return true;
+    }
+
+    /**
+     * @return \models\domain\user\User returns user object with auth tokens
+     * @throws \Exception if failed to update user or delete user's tokens
+     */
+    public function changePassword(User $user, $newPassword): User | null
+    {
+        $user->PasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $user->VerificationKey = null;
+
+        $result = $this->userRepository->update($user);
+
+        if ($result === false) {
+            throw new Exception("Failed to update user", 101);
+        }
+
+        $result = $this->tokenRepository->deleteAllUserTokens($user->Id);
+
+        if ($result === false) {
+            throw new Exception("Failed to delete user's tokens", 101);;
+        }
+
+        $user = $this->createTokensAndAssignThemToUser($user);
+
+        return $user;
     }
 
 
@@ -190,6 +216,11 @@ class AuthService
         $now = new DateTime();
         $additionalRandomString = bin2hex(random_bytes(8));
         return $this->encryption->hashWithSecret($userEmail . $additionalRandomString . $now->format('c'), false);
+    }
+
+    public function isUserPasswordValid(User $user, string $password): bool
+    {
+        return password_verify($password, $user->PasswordHash);
     }
 
 

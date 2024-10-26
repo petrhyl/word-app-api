@@ -12,8 +12,8 @@ class ChangePassword extends BaseEndpoint
 
     public function __invoke(ChangePasswordRequest $payload)
     {
-        $this->userService->changePassword($payload);
+        $response = $this->userService->changePassword($payload);
 
-        $this->respondAndDie(null, 204);
+        $this->respondAndDie(['auth' => $response]);
     }
 }

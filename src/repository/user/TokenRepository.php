@@ -47,6 +47,16 @@ class TokenRepository
         return $stmt->rowCount() > 0;
     }
 
+    public function deleteAllUserTokens(int $userId) : bool {
+        $cmd = "DELETE FROM Wordapp_UserLogins WHERE UserId = :user";
+
+        $stmt = $this->conn->prepare($cmd);
+
+        $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
     public function exists(string $tokenHashed, int $userId): bool
     {
         $query = "SELECT Id FROM Wordapp_UserLogins

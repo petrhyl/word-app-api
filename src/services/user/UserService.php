@@ -45,9 +45,9 @@ class UserService
     }
 
     /**
-     * @return \models\response\AuthResponse|null returns response object if user's credentials are valid otherwise returns `null`
+     * @return \models\response\AuthResponse returns response object if user's credentials are valid
      */
-    public function login(LoginRequest $request): ?AuthResponse
+    public function login(LoginRequest $request): AuthResponse
     {
         $authUserId = $this->authService->getAuthenticatedUserId();
 
@@ -183,17 +183,21 @@ class UserService
         return UserMapper::mapToTokenResponse($user);
     }
 
-    public function changePassword(ChangePasswordRequest $request): void
+    public function changePassword(ChangePasswordRequest $request): AuthResponse
     {
-        $user = $this->userRepository->getByEmail($request->userEmail);
+        $user = $this->authService->getAuthenticatedUser();
 
         if ($user === null) {
-            throw new ApplicationException("User with provided e-mail was not found", 404);
+            throw new ApplicationException("User was not found", 404);
         }
 
-        if ($user->VerificationKey !== trim($request->verificationKey)) {
-            throw new ApplicationException("Invalid security key", 422);
+        if ($this->authService->isUserPasswordValid($user, $request->previousPassword) === false) {
+            throw new ApplicationException("Invalid user's password", 422);
         }
+
+        $user = $this->authService->changePassword($user, $request->newPassword);
+
+        return UserMapper::mapToAuthResponse($user);
     }
 
     public function sendEmailToVerification(SendEmailRequest $request): void
