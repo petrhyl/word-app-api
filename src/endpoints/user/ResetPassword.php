@@ -18,7 +18,7 @@ class ResetPassword extends BaseEndpoint
     {
         $this->validator->validate($payload);
 
-        $this->userService->changeForgottenPassword($payload);
+        $this->userService->resetPassword($payload);
 
         $this->respondAndDie(null, 204);
     }

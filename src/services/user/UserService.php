@@ -230,7 +230,7 @@ class UserService
         $this->sendForgottenPasswordEmail($user);
     }
 
-    public function changeForgottenPassword(ResetPasswordRequest $request): void
+    public function resetPassword(ResetPasswordRequest $request): void
     {
         $user = $this->userRepository->getByVerificationKey($request->verificationKey);
 
