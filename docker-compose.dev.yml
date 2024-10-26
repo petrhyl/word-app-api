@@ -21,10 +21,10 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./api
+          path: ./
           target: /var/www/html/word-app/api
     volumes:
-      - ./api:/var/www/html/word-app/api
+      - .:/var/www/html/word-app/api
     networks:
       - word-app-network
 

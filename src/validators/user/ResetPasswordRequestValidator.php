@@ -5,7 +5,7 @@ namespace validators\user;
 use validators\common\Validator;
 use validators\common\ValidatorUtils;
 
-class ChangePasswordValidator extends Validator
+class ResetPasswordRequestValidator extends Validator
 {
     public function __construct()
     {
@@ -13,15 +13,15 @@ class ChangePasswordValidator extends Validator
     }
 
     /**
-     * @param \models\request\ChangePasswordRequest $object
+     * @param \models\request\NewPasswordRequest $object
      */
     public function validate($object): void
     {
-        if(empty($object->previousPassword)) {
-            $this->addInvalidProperty("previousPassword", "Old password is required.");
+        if(empty($object->verificationKey)) {
+            $this->addInvalidProperty("verificationKey", "Verification key is required.");
         }
 
-        if (!ValidatorUtils::isPasswordValid($object->newPassword)) {
+        if (!ValidatorUtils::isPasswordValid($object->password)) {
             $this->addInvalidProperty("password", "Password has to contain at least one uppercase letter, one digit and has to be at least 8 characters long.");
         }
 

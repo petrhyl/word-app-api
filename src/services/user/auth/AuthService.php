@@ -159,13 +159,26 @@ class AuthService
     }
 
     /**
-     * @return \models\domain\user\User returns user object with auth tokens
+     * @return \models\domain\user\User user object with auth tokens
      * @throws \Exception if failed to update user or delete user's tokens
      */
-    public function changePassword(User $user, $newPassword): User | null
+    public function changePassword(User $user, $newPassword): User
+    {
+        $user = $this->createNewPassword($user, $newPassword);
+
+        $user = $this->createTokensAndAssignThemToUser($user);
+
+        return $user;
+    }
+
+    /**
+     * @throws \Exception if failed to update user or delete user's tokens
+     */
+    public function createNewPassword(User $user, $newPassword): User
     {
         $user->PasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
         $user->VerificationKey = null;
+        $user->UpdatedAt = new DateTime();
 
         $result = $this->userRepository->update($user);
 
@@ -178,8 +191,6 @@ class AuthService
         if ($result === false) {
             throw new Exception("Failed to delete user's tokens", 101);;
         }
-
-        $user = $this->createTokensAndAssignThemToUser($user);
 
         return $user;
     }

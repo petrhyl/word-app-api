@@ -5,7 +5,7 @@ namespace config;
 use Exception;
 use models\DbConfiguration;
 use models\email\EmailServerConfiguration;
-use models\RegistrationConfiguration;
+use models\AuthConfiguration;
 use repository\language\LanguageRepository;
 use repository\user\UserRepository;
 use repository\vocabulary\VocabularyRepository;
@@ -125,20 +125,21 @@ class Bootstrap
         return $conf;
     }
 
-    private static function getRegistrationConfiguration(): RegistrationConfiguration
+    private static function getRegistrationConfiguration(): AuthConfiguration
     {
         $confArray = Configuration::getConfiguration(
-            ['VERIFICATION_LINK','LOGIN_LINK', 'EMAIL_VERIFICATION'],
+            ['VERIFICATION_LINK','LOGIN_LINK', 'EMAIL_VERIFICATION', 'RESET_PASSWORD_LINK'],
         );
 
         if (count($confArray) < 2) {
             throw new Exception('Not able to get registration configuration from environment.');
         }
 
-        $conf = new RegistrationConfiguration();
+        $conf = new AuthConfiguration();
         $conf->VerificationClientLink = $confArray['VERIFICATION_LINK'];
         $conf->LoginClientLink = $confArray['LOGIN_LINK'];
         $conf->IsEmailVerificationRequired = $confArray['EMAIL_VERIFICATION'];
+        $conf->ResetPasswordClientLink = $confArray['RESET_PASSWORD_LINK'];
 
         return $conf;
     }

@@ -9,7 +9,8 @@ $confData = [
     "EMAIL_PORT" => "587",
     "VERIFICATION_LINK" => "http://localhost:3001/word-app/signup/verification/",
     "LOGIN_LINK" => "http://localhost:3001/word-app/login",
-    "EMAIL_VERIFICATION" => true,    
+    "EMAIL_VERIFICATION" => true,
+    "RESET_PASSWORD_LINK" => "http://localhost:3001/word-app/reset-password/",
 ];
 
 if (file_exists($otherSettingsPath)) {
