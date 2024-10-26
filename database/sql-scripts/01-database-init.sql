@@ -45,7 +45,7 @@ CREATE TABLE Wordapp_Vocabularies(
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (Id),
     UNIQUE (UserId, Value, VocabularyLanguageId),
-    INDEX idx_trans_user_id (UserId, VocabularyLanguageId, IsLearned)
+    INDEX idx_trans_user_id (UserId, VocabularyLanguageId, IsLearned),
     INDEX idx_user_id_language_id (UserId, VocabularyLanguageId)
 );
 DROP TABLE IF EXISTS Wordapp_ExerciseResults;
