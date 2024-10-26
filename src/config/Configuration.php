@@ -6,7 +6,7 @@ namespace config;
 
 class Configuration
 {
-    private const CONFIG_FILE_PATH = '/appSettings.php';
+    private const CONFIG_FILE_PATH = '/settings/appSettings.php';
     private static ?array $configurationData = null;
 
     public static function getConfiguration(array $keys): array
