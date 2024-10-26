@@ -26,8 +26,9 @@ class VocabularyRepository
     public function getUserVocabulary(int $userId, int $languageId, int $limit, int $offset) : array
     {
         $query = self::GET_WORD_QUERY . 
-        " WHERE UserId = :user AND VocabularyLanguageId = :lang LIMIT :lim OFFSET :off
-        ORDER BY Value ASC";
+        " WHERE UserId = :user AND VocabularyLanguageId = :lang 
+        ORDER BY Value ASC
+        LIMIT :lim OFFSET :off";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
