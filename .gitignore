@@ -1,4 +1,4 @@
 src/vendor/*
 logs/*
-src/config/otherSettings.php
+src/config/settings/.otherSettings.php
 .env
