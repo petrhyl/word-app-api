@@ -74,9 +74,12 @@ class UserRepository
         return $this->getByValue($id, 'Id');
     }
 
+    /**
+     * converts the email to lowercase before searching
+     */
     public function getByEmail(string $email): ?User
     {
-        return $this->getByValue($email, 'Email');
+        return $this->getByValue(strtolower($email), 'Email');
     }
 
     public function getByVerificationKey(string $verificationKey): ?User
