@@ -11,6 +11,6 @@ class VocabularyItemResponse
      */
     public array $translations;
     public int $correctAnswers;
-    public bool $isLearned;
+    public ?bool $isLearned;
     public string $updatedAt;
 }

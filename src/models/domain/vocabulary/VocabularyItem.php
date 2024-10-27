@@ -12,7 +12,7 @@ class VocabularyItem extends DomainEntity
     public int $VocabularyLanguageId;
     public string $Value;
     public string $Translations;
-    public bool $IsLearned;
+    public ?bool $IsLearned = null;
     public int $CorrectAnswers;
     private string $UpdatedAt;
     public function updatedAt(): DateTime

@@ -72,7 +72,6 @@ class VocabularyMapper
             $item->UserId = $userId;
             $item->Value = $requestItem->word;
             $item->VocabularyLanguageId = $request->languageId;
-            $item->IsLearned = false;
             $item->CorrectAnswers = 0;
             $item->Translations = implode(';', $requestItem->translations);
             $items[] = $item;
