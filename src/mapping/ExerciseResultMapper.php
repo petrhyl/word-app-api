@@ -38,6 +38,13 @@ class ExerciseResultMapper
         $response->successRate = self::calculateSuccessRate($exerciseResult->CorrectAnswers, $exerciseResult->IncorrectAnswers);
         $totalAnswered = $exerciseResult->CorrectAnswers + $exerciseResult->IncorrectAnswers;
         $response->totalAnsweredWords = $totalAnswered;
+
+        if ($exerciseResult->ExercisesCount === 0) {
+            $response->answeredWordsAverage = 0;
+        
+            return $response;
+        }
+
         $response->answeredWordsAverage = $totalAnswered / $exerciseResult->ExercisesCount;
 
         return $response;

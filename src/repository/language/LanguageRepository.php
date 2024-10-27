@@ -95,4 +95,15 @@ class LanguageRepository
 
         return $userLanguage;
     }
+
+    public function deleteVocabularyLanguage(int $languageId): bool
+    {
+        $stmt = $this->conn->prepare("DELETE FROM Wordapp_VocabularyLanguages WHERE Id = :id");
+
+        $stmt->bindValue(':id', $languageId, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
 }

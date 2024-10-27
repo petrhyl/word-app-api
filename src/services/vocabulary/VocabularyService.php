@@ -102,6 +102,8 @@ class VocabularyService
         }
 
         $item = VocabularyMapper::mapUpdateRequestToVocabularyItem($request, $existingItem);
+        $item->CorrectAnswers = 0;
+        $item->IsLearned = false;
         $item->setUpdatedAt(new DateTime());
 
         $result = $this->vocabularyRepository->updateVocabularyItem($item);

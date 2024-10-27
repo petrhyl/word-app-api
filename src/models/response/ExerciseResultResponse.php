@@ -7,5 +7,5 @@ class ExerciseResultResponse
     public VocabularyLanguageResponse $language;
     public float $successRate;
     public int $totalAnsweredWords;
-    public int $answeredWordsAverage;
+    public float $answeredWordsAverage;
 }

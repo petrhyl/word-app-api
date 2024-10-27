@@ -79,4 +79,25 @@ class LanguageService
 
         return $result;
     }
+
+    public function deleteUserVocabularyLanguage(int $languageId): void
+    {
+        $userId = $this->authService->getAuthenticatedUserId();
+
+        $language = $this->languageRepository->getVocabularyLanguageById($languageId);
+
+        if ($language === null) {
+            throw new ApplicationException("User's vocabulary language not found", 404);
+        }
+
+        if ($language->UserId !== $userId) {
+            throw new ApplicationException("User's vocabulary language not found", 404);
+        }
+
+        $result = $this->languageRepository->deleteVocabularyLanguage($language->Id);
+
+        if (!$result) {
+            throw new Exception("Failed to delete user's vocabulary language", 101);
+        }
+    }
 }
