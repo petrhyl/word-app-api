@@ -60,11 +60,11 @@ class UserService
         $user = $this->userRepository->getByEmail($request->email);
 
         if ($user === null) {
-            throw new ApplicationException("Invalid user's e-mail or password", 422);
+            throw new ApplicationException("Invalid user's e-mail or password", 400);
         }
 
         if ($user->VerificationKey !== null) {
-            throw new ApplicationException("Invalid user's credentials", 422);
+            throw new ApplicationException("Invalid user's credentials", 400);
         }
 
         if ($user->IsVerified === false) {
@@ -74,7 +74,7 @@ class UserService
         $user = $this->authService->login($user, $request->password);
 
         if ($user === null) {
-            throw new ApplicationException("Invalid user's e-mail or password", 422);
+            throw new ApplicationException("Invalid user's e-mail or password", 400);
         }
 
         return UserMapper::mapToAuthResponse($user);
@@ -100,7 +100,7 @@ class UserService
         $existingUser = $this->userRepository->getByEmail($request->email);
 
         if ($existingUser !== null) {
-            throw new ApplicationException("User with provided e-mail is already registered.", 422);
+            throw new ApplicationException("User with provided e-mail is already registered.", 400);
         }
 
         $user = UserMapper::mapRegisterRequestToUser($request);
@@ -202,7 +202,7 @@ class UserService
         }
 
         if ($this->authService->isUserPasswordValid($user, $request->previousPassword) === false) {
-            throw new ApplicationException("Invalid user's password", 422);
+            throw new ApplicationException("Invalid user's password", 400);
         }
 
         $user = $this->authService->changePassword($user, $request->newPassword);
@@ -250,7 +250,7 @@ class UserService
         }
 
         if ($user->IsVerified) {
-            throw new ApplicationException("User's e-mail address is already verified", 422);
+            throw new ApplicationException("User's e-mail address is already verified", 400);
         }
 
         $user->UpdatedAt = new DateTime();
