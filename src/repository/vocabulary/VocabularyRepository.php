@@ -53,7 +53,7 @@ class VocabularyRepository
     public function getUserUnlearnedVocabulary(int $userId, int $languageId, int $limit): array
     {
         $query = self::GET_WORD_QUERY .
-            " WHERE UserId = :user AND VocabularyLanguageId = :lang AND IsLearned = 0" .
+            " WHERE UserId = :user AND VocabularyLanguageId = :lang AND (IsLearned = 0 OR IsLearned IS NULL)" .
             self::ORDER_BY_QUERY .
             " LIMIT :lim";
 
