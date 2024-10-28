@@ -17,6 +17,7 @@ use models\request\ResetPasswordRequest;
 use models\request\RefreshTokensRequest;
 use models\request\RegisterRequest;
 use models\request\SendEmailRequest;
+use models\request\UpdateUserRequest;
 use models\response\AuthResponse;
 use models\response\RegisterResponse;
 use models\response\RegisterResponseMessage;
@@ -239,6 +240,26 @@ class UserService
         }
 
         $user = $this->authService->createNewPassword($user, $request->password);
+    }
+
+    public function updateUserData(UpdateUserRequest $request): UserResponse
+    {
+        $user = $this->authService->getAuthenticatedUser();
+
+        if ($user === null) {
+            throw new ApplicationException("User was not found", 404);
+        }
+
+        $user->Name = $request->name;
+        $user->UpdatedAt = new DateTime();
+
+        $result = $this->userRepository->update($user);
+
+        if (!$result) {
+            throw new Exception("Failed to update user's data in database", 101);
+        }
+
+        return UserMapper::mapToUserResponse($user);
     }
 
     public function sendEmailToVerification(SendEmailRequest $request): void

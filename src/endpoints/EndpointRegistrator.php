@@ -13,6 +13,7 @@ class EndpointRegistrator
     public function registerEndpoints(): EndpointRouteBuilder
     {
         $this->router->get('word-app/api/user/auth', user\GetAuthenticatedUser::class, [AuthorizationMiddleware::class]);
+        $this->router->put('word-app/api/user', user\UpdateUser::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/user/login', user\Login::class, [AbortAuthorizedMiddleware::class]);
         $this->router->post('word-app/api/user/logout', user\Logout::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/user/register', user\Register::class, [AbortAuthorizedMiddleware::class]);
