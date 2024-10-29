@@ -17,7 +17,7 @@ class VocabularyRepository
     }
 
     private const GET_WORD_QUERY = "SELECT * FROM Wordapp_Vocabularies";
-    private const ORDER_BY_QUERY = " ORDER BY UpdatedAt ASC, CorrectAnswers ASC";
+    private const ORDER_BY_QUERY = " ORDER BY CorrectAnswers ASC, UpdatedAt ASC";
 
 
     /**
