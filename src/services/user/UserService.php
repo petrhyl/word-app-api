@@ -303,7 +303,7 @@ class UserService
         <p style=\"font-size: 0.9em\">If this request wasn't made by you, please disregard or delete this email.</p>";
         $message->plainMessage = "Hello from Word App\n 
         Thank you for your registration on our web site.\n
-        Please, verify your e-mail addres to fully enjoy our web about fashion.
+        Please, verify your e-mail addres to fully enjoy our web application.
         To verify your e-mail address please use this link: {$verificationLink}\n
         If this request wasn't made by you, please ignore or delete this email.";
         $message->recipientAddress = $user->Email;
