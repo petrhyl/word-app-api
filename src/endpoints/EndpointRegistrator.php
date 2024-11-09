@@ -18,7 +18,7 @@ class EndpointRegistrator
         $this->router->post('word-app/api/user/logout', user\Logout::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/user/register', user\Register::class, [AbortAuthorizedMiddleware::class]);
         $this->router->post('word-app/api/user/refresh', user\Refresh::class);
-        $this->router->post('word-app/api/user/verify/{key}', user\Verification::class, [AbortAuthorizedMiddleware::class]);
+        $this->router->post('word-app/api/user/verify/{key}', user\Verify::class, [AbortAuthorizedMiddleware::class]);
         $this->router->post('word-app/api/user/send', user\SendVerificationEmail::class, [AbortAuthorizedMiddleware::class]);
         $this->router->put('word-app/api/user/change-password', user\ChangePassword::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/user/forget-password', user\ForgetPassword::class, [AbortAuthorizedMiddleware::class]);

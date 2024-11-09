@@ -6,7 +6,7 @@ use endpoints\BaseEndpoint;
 use services\user\UserService;
 use validators\user\VerificationKeyValidator;
 
-class Verification extends BaseEndpoint
+class Verify extends BaseEndpoint
 {
     public function __construct(
         private readonly VerificationKeyValidator $validator,
