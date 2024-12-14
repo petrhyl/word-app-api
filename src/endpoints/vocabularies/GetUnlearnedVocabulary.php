@@ -8,7 +8,7 @@ use services\vocabulary\VocabularyService;
 use validators\vocabulary\GetVocabularyValidator;
 use validators\vocabulary\PagedQueryValidator;
 
-class GetLanguageVocabulary extends BaseEndpoint
+class GetUnlearnedVocabulary extends BaseEndpoint
 {
     public function __construct(
         private readonly VocabularyService $vocabularyService,
@@ -21,7 +21,7 @@ class GetLanguageVocabulary extends BaseEndpoint
         $this->validator->validate($langId);
         $this->pagedQueryValidator->validate($query);
 
-        $response = $this->vocabularyService->getVocabularyOfLanguage($langId, $query);
+        $response = $this->vocabularyService->getUnlearnedVocabularyOfLanguage($langId, $query);
 
         $this->respondAndDie(['vocabulary' => $response]);
     }

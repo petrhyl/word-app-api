@@ -25,7 +25,7 @@ class VocabularyService
         private readonly AuthService $authService
     ) {}
 
-    public function getVocabularyOfLanguage($langId, PagedQuery $paging) : LanguageVocabularyResponse
+    public function getVocabularyOfLanguage(int $langId, PagedQuery $paging): LanguageVocabularyResponse
     {
         $userId = $this->authService->getAuthenticatedUserId();
 
@@ -37,9 +37,22 @@ class VocabularyService
 
         $items = $this->vocabularyRepository->getUserVocabulary($userId, $langId, $paging->limit, $paging->offset);
 
-        $response = VocabularyMapper::mapToLanguageVocabularyResponse($language, $items);
+        return VocabularyMapper::mapToLanguageVocabularyResponse($language, $items);
+    }
 
-        return $response;        
+    public function getUnlearnedVocabularyOfLanguage(int $langId, PagedQuery $paging): LanguageVocabularyResponse
+    {
+        $userId = $this->authService->getAuthenticatedUserId();
+
+        $language = $this->languageRepository->getVocabularyLanguageById($langId);
+
+        if ($language === null || $language->UserId !== $userId) {
+            throw new ApplicationException("User's vocabulary language not found", 404);
+        }
+
+        $items = $this->vocabularyRepository->getUserUnlearnedVocabulary($userId, $langId, $paging->limit, $paging->offset);
+
+        return VocabularyMapper::mapToLanguageVocabularyResponse($language, $items);
     }
 
     public function createVocabulary(CreateVocabularyRequest $request): void
@@ -113,10 +126,11 @@ class VocabularyService
         }
     }
 
-    public function checkIfWordExists(CheckIfWordExistsRequest $request):bool{
-        $userId = $this->authService->getAuthenticatedUserId();        
+    public function checkIfWordExists(CheckIfWordExistsRequest $request): bool
+    {
+        $userId = $this->authService->getAuthenticatedUserId();
 
-        $result = $this->vocabularyRepository->getUserVocabularyItem($userId , $request->languageId, $request->word);
+        $result = $this->vocabularyRepository->getUserVocabularyItem($userId, $request->languageId, $request->word);
 
         if ($result === null) {
             return false;

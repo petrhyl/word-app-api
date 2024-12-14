@@ -25,6 +25,7 @@ class EndpointRegistrator
         $this->router->put('word-app/api/user/reset-password', user\ResetPassword::class, [AbortAuthorizedMiddleware::class]);
 
         $this->router->get('word-app/api/vocabularies/{langId}', vocabularies\GetLanguageVocabulary::class, [AuthorizationMiddleware::class]);
+        $this->router->get('word-app/api/vocabularies/{langId}/unlearned', vocabularies\GetUnlearnedVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies', vocabularies\CreateUserVocabulary::class, [AuthorizationMiddleware::class]);
         $this->router->post('word-app/api/vocabularies/check', vocabularies\CheckIfWordExists::class, [AuthorizationMiddleware::class]);
         $this->router->put('word-app/api/vocabularies/items/{id}', vocabularies\UpdateUserVocabularyItem::class, [AuthorizationMiddleware::class]);

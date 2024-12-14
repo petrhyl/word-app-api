@@ -23,10 +23,10 @@ class VocabularyRepository
     /**
      * @return VocabularyItem[]
      */
-    public function getUserVocabulary(int $userId, int $languageId, int $limit, int $offset) : array
+    public function getUserVocabulary(int $userId, int $languageId, int $limit, int $offset): array
     {
-        $query = self::GET_WORD_QUERY . 
-        " WHERE UserId = :user AND VocabularyLanguageId = :lang 
+        $query = self::GET_WORD_QUERY .
+            " WHERE UserId = :user AND VocabularyLanguageId = :lang 
         ORDER BY Value ASC
         LIMIT :lim OFFSET :off";
 
@@ -50,14 +50,18 @@ class VocabularyRepository
     /**
      * @return VocabularyItem[]
      */
-    public function getUserUnlearnedVocabulary(int $userId, int $languageId, int $limit): array
+    public function getUserUnlearnedVocabulary(int $userId, int $languageId, int $limit,  ?int $offset = null): array
     {
         $query = self::GET_WORD_QUERY .
             " WHERE UserId = :user AND VocabularyLanguageId = :lang AND (IsLearned = 0 OR IsLearned IS NULL)" .
             self::ORDER_BY_QUERY .
             " LIMIT :lim";
 
-        return $this->getVocabulary($userId, $languageId, $query, $limit);
+        if ($offset !== null) {
+            $query .= " OFFSET :off";
+        }
+
+        return $this->getVocabulary($userId, $languageId, $query, $limit, $offset);
     }
 
     /**
@@ -162,12 +166,16 @@ class VocabularyRepository
     /**
      * @return VocabularyItem[]
      */
-    private function getVocabulary(int $userId, int $languageId, string $query, int $limit): array
+    private function getVocabulary(int $userId, int $languageId, string $query, int $limit, ?int $offset = null): array
     {
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
         $stmt->bindValue(':lang', $languageId, PDO::PARAM_INT);
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+
+        if ($offset !== null) {
+            $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
+        }
 
         $stmt->execute();
 
