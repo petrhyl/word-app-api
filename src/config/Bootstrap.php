@@ -4,154 +4,88 @@ namespace config;
 
 use Exception;
 use models\DbConfiguration;
-use models\email\EmailServerConfiguration;
-use models\AuthConfiguration;
+use models\email\sender\configuration\EmailSenderConfiguration;
+use repository\database\Database;
 use repository\language\LanguageRepository;
 use repository\user\UserRepository;
 use repository\vocabulary\VocabularyRepository;
+use services\email\configuration\EmailServiceConfiguration;
+use services\email\EmailService;
 use services\EncryptionService;
 use services\user\auth\AuthService;
-use services\user\EmailSenderService;
+use services\email\sender\EmailSenderService;
 use services\user\UserService;
-use WebApiCore\Container\AppBuilder;
-use WebApiCore\Container\InstanceProvider;
+use WebApiCore\Configuration\ConfigurationManager;
+use WebApiCore\Container\Container;
+use WebApiCore\Container\Instance\Provider\InstanceProvider;
 
 class Bootstrap
 {
-    public static function addDatabase(AppBuilder $builder): AppBuilder
+    public static function bootstrapApp(Container $container, ConfigurationManager $config): void
     {
-        $dbConfiguration = Configuration::getConfiguration(
-            ['DB_HOST', 'DB_NAME', 'DB_PORT', 'DB_USER', 'DB_USER_PASSWORD']
-        );
-
-        if (count($dbConfiguration) < 5) {
-            throw new Exception('Not able to get database configuration from environment.');
-        }
-
-        $dbConfigurationInstance = new DbConfiguration(
-            $dbConfiguration['DB_HOST'],
-            $dbConfiguration['DB_NAME'],
-            $dbConfiguration['DB_PORT'],
-            $dbConfiguration['DB_USER'],
-            $dbConfiguration['DB_USER_PASSWORD']
-        );
-
-        $builder->Container->bindScoped(
-            DbConfiguration::class,
-            fn(InstanceProvider $instanceProvider) => $dbConfigurationInstance
-        );
-
-        $builder->Container->bindScoped(
-            Database::class,
-            fn(InstanceProvider $instanceProvider) => $instanceProvider->build(Database::class)
-        );
-
-        return $builder;
+        self::addConfiguration($container, $config);
+        self::addDatabase($container);
+        self::addServices($container, $config);
     }
 
-    public static function addServices(AppBuilder $builder): AppBuilder
+    public static function addConfiguration(Container $container, ConfigurationManager $config): void
     {
-        $secretKey = self::getSecretKey();
+        $container->configure(DbConfiguration::class, 'db', $config);
+        $container->configure(EmailSenderConfiguration::class, 'sender.email', $config);
+        $container->configure(EmailServiceConfiguration::class, 'emailService', $config);
+    }
 
-        $builder->Container->bindScoped(
+    public static function addDatabase(Container $container): void
+    {
+        $container->bindScoped(Database::class);
+    }
+
+    public static function addServices(Container $container, ConfigurationManager $config): void
+    {
+        $secretKey = self::getSecretKey($config);
+
+        $container->bindScoped(
             EncryptionService::class,
             fn(InstanceProvider $instanceProvider) => new EncryptionService($secretKey)
         );
 
-        $emailConf = self::getEmailServerConfiguration();
-
-        $builder->Container->bindScoped(
-            EmailSenderService::class,
-            fn(InstanceProvider $instanceProvider) => new EmailSenderService($emailConf)
-        );
-        $builder->Container->bindScoped(
-            AuthService::class,
-            fn(InstanceProvider $instanceProvider) => $instanceProvider->build(AuthService::class)
-        );
-
-        $registationConf = self::getRegistrationConfiguration();
-
-        $builder->Container->bindScoped(
-            UserService::class,
-            fn(InstanceProvider $instanceProvider) => new UserService(
-                $registationConf,
-                $instanceProvider->get(AuthService::class),
-                $instanceProvider->get(UserRepository::class),
-                $instanceProvider->get(EmailSenderService::class)
-            )
-        );
-
-        return $builder;
+        $container->bindScoped(EmailSenderService::class);
+        $container->bindScoped(EmailService::class);
+        $container->bindScoped(AuthService::class);
+        $container->bindScoped(UserService::class);
     }
 
-    public static function addRepositories(AppBuilder $builder): AppBuilder
+    public static function addRepositories(Container $container): void
     {
-        $builder->Container->bindScoped(
+        $container->bindScoped(
             UserRepository::class,
             fn(InstanceProvider $instanceProvider) => $instanceProvider->build(UserRepository::class)
         );
 
-        $builder->Container->bindScoped(
+
+        $container->bindScoped(
             VocabularyRepository::class,
             fn(InstanceProvider $instanceProvider) => $instanceProvider->build(VocabularyRepository::class)
         );
 
-        $builder->Container->bindScoped(
+        $container->bindScoped(
             LanguageRepository::class,
             fn(InstanceProvider $instanceProvider) => $instanceProvider->build(LanguageRepository::class)
         );
-
-        return $builder;
     }
 
-
-    private static function getEmailServerConfiguration(): EmailServerConfiguration
+    private static function getSecretKey(ConfigurationManager $conf): string
     {
-        $confArray = Configuration::getConfiguration(
-            ['EMAIL_SERVER', 'EMAIL_SENDER_ADR', 'EMAIL_SENDER_NM', 'EMAIL_SENDER_PSWD', 'EMAIL_PORT']
-        );
+        $section = $conf->getSection("appSecret");
 
-        if (count($confArray) < 5) {
-            throw new Exception('Not able to get email server configuration from environment.');
-        }
-
-        $conf = new EmailServerConfiguration();
-        $conf->Server = $confArray['EMAIL_SERVER'];
-        $conf->SenderAddress = $confArray['EMAIL_SENDER_ADR'];
-        $conf->SenderName = $confArray['EMAIL_SENDER_NM'];
-        $conf->SenderPassword = $confArray['EMAIL_SENDER_PSWD'];
-        $conf->Port = $confArray['EMAIL_PORT'];
-
-        return $conf;
-    }
-
-    private static function getRegistrationConfiguration(): AuthConfiguration
-    {
-        $confArray = Configuration::getConfiguration(
-            ['VERIFICATION_LINK','LOGIN_LINK', 'EMAIL_VERIFICATION', 'RESET_PASSWORD_LINK'],
-        );
-
-        if (count($confArray) < 2) {
-            throw new Exception('Not able to get registration configuration from environment.');
-        }
-
-        $conf = new AuthConfiguration();
-        $conf->VerificationClientLink = $confArray['VERIFICATION_LINK'];
-        $conf->LoginClientLink = $confArray['LOGIN_LINK'];
-        $conf->IsEmailVerificationRequired = $confArray['EMAIL_VERIFICATION'];
-        $conf->ResetPasswordClientLink = $confArray['RESET_PASSWORD_LINK'];
-
-        return $conf;
-    }
-
-    private static function getSecretKey(): string
-    {
-        $conf = Configuration::getConfiguration(['APP_SECRET']);
-
-        if (count($conf) === 0) {
+        if (empty($section)) {
             throw new Exception('Not able to get secrete key from configuration.');
         }
 
-        return $conf['APP_SECRET'];
+        if (!array_key_exists('appSecret', $section)) {
+            throw new Exception('Not able to get secrete key from configuration.');
+        }
+
+        return $section['appSecret'];
     }
 }

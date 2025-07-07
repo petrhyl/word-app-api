@@ -4,14 +4,11 @@ namespace models;
 
 class DbConfiguration
 {
-    public function __construct(
-        private string $host,
-        private string $database,
-        private int $port,
-        private string $user,
-        private string $password
-    ) {
-    }
+    private string $host;
+    private string $database;
+    private int $port;
+    private string $user;
+    private string $password;
 
     public function host(): string
     {
