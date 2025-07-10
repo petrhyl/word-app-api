@@ -2,7 +2,7 @@
 
 namespace validators\common;
 
-use models\validator\ValidationError;
+use validators\common\models\ValidationError;
 
 interface IValidator
 {

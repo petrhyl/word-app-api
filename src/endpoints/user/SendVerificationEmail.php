@@ -11,7 +11,7 @@ class SendVerificationEmail extends BaseEndpoint{
     
     public function __invoke(SendEmailRequest $payload)
     {
-        $this->userService->sendEmailToVerification($payload);
+        $this->userService->sendEmailToVerify($payload);
 
         $this->respondAndDie(["message" => "Email was successefully sent"]);
     }    

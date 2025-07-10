@@ -14,7 +14,6 @@ services:
       DB_HOST: word-app-db
       DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_USER_PASSWORD}
-      EMAIL_SENDER_PSWD: ${EMAIL_SENDER_PSWD}
       SECRET_KEY: ${APP_SECRET}
     restart: on-failure
     depends_on: [ word-app-database ]

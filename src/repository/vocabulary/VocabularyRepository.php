@@ -2,7 +2,7 @@
 
 namespace repository\vocabulary;
 
-use config\Database;
+use repository\database\Database;
 use models\domain\vocabulary\VocabularyItem;
 use PDO;
 

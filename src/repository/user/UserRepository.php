@@ -2,7 +2,7 @@
 
 namespace repository\user;
 
-use config\Database;
+use repository\database\Database;
 use DateTime;
 use models\domain\user\User;
 use PDO;

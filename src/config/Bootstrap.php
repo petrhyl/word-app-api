@@ -3,17 +3,16 @@
 namespace config;
 
 use Exception;
-use models\DbConfiguration;
-use models\email\sender\configuration\EmailSenderConfiguration;
+use repository\database\DbConfiguration;
+use services\message\sender\email\EmailSenderConfiguration;
 use repository\database\Database;
 use repository\language\LanguageRepository;
 use repository\user\UserRepository;
 use repository\vocabulary\VocabularyRepository;
-use services\email\configuration\EmailServiceConfiguration;
-use services\email\EmailService;
 use services\EncryptionService;
 use services\user\auth\AuthService;
-use services\email\sender\EmailSenderService;
+use services\message\UserMessageService;
+use services\user\auth\configuration\AuthConfiguration;
 use services\user\UserService;
 use WebApiCore\Configuration\ConfigurationManager;
 use WebApiCore\Container\Container;
@@ -31,8 +30,8 @@ class Bootstrap
     public static function addConfiguration(Container $container, ConfigurationManager $config): void
     {
         $container->configure(DbConfiguration::class, 'db', $config);
+        $container->configure(AuthConfiguration::class, 'auth', $config);
         $container->configure(EmailSenderConfiguration::class, 'sender.email', $config);
-        $container->configure(EmailServiceConfiguration::class, 'emailService', $config);
     }
 
     public static function addDatabase(Container $container): void
@@ -49,8 +48,7 @@ class Bootstrap
             fn(InstanceProvider $instanceProvider) => new EncryptionService($secretKey)
         );
 
-        $container->bindScoped(EmailSenderService::class);
-        $container->bindScoped(EmailService::class);
+        $container->bindScoped(UserMessageService::class);
         $container->bindScoped(AuthService::class);
         $container->bindScoped(UserService::class);
     }

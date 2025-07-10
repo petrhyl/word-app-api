@@ -3,10 +3,12 @@
 $otherSettingsPath = __DIR__ . '/.otherSettings.php';
 
 $confData = [
-    "emailService" => [
+    "auth" => [
+        "senderType" => "email",
         "verificationLink" => "http://localhost:3001/word-app/signup/verification/",
         "loginLink" => "http://localhost:3001/word-app/login",
-        "resetPasswordLink" => "http://localhost:3001/word-app/reset-password/",
+        "resetLink" => "http://localhost:3001/word-app/reset-password/",
+        "useNoReply" => true
     ]
 ];
 

@@ -7,8 +7,7 @@ use Exception;
 use mapping\UserMapper;
 use models\domain\user\AuthToken;
 use models\domain\user\User;
-use models\email\EmailMessage;
-use models\AuthConfiguration;
+use services\user\auth\configuration\AuthConfiguration;
 use models\request\ChangePasswordRequest;
 use models\request\ForgotPasswordRequest;
 use models\request\LoginRequest;
@@ -24,6 +23,9 @@ use models\response\RegisterResponseMessage;
 use models\response\TokenResponse;
 use models\response\UserResponse;
 use repository\user\UserRepository;
+use services\message\message\recipient\MessageRecipient;
+use services\message\message\template\MessageTemplateType;
+use services\message\UserMessageService;
 use services\user\auth\AuthService;
 use WebApiCore\Exceptions\ApplicationException;
 
@@ -33,7 +35,7 @@ class UserService
         private readonly AuthConfiguration $authConfiguration,
         private readonly AuthService $authService,
         private readonly UserRepository $userRepository,
-        private readonly EmailSenderService $emailSender
+        private readonly UserMessageService $messageService
     ) {}
 
     public function getAuthenticatedUser(): UserResponse
@@ -106,25 +108,26 @@ class UserService
 
         $user = UserMapper::mapRegisterRequestToUser($request);
 
-        if ($this->authConfiguration->IsEmailVerificationRequired) {
-            $user->IsVerified = false;
-            $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
-        } else {
-            $user->IsVerified = true;
-        }
+        $user->IsVerified = false;
+        $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
 
         $user = $this->authService->registerValidUser($user, $request->password);
 
         $response = new RegisterResponse();
 
-        if (!$this->authConfiguration->IsEmailVerificationRequired && $user->IsVerified) {
-            $response->auth = UserMapper::mapToAuthResponse($user);
-        } else {
-            $this->sendVerificationEmail($user);
-            $response->registration = new RegisterResponseMessage();
-            $response->registration->userEmail = $user->Email;
-            $response->registration->message = "User was successfully registered. Please verify your e-mail address.";
-        }
+        $this->messageService->send(
+            new MessageRecipient($user->Email, $user->Name),
+            $this->authConfiguration->getMessageSender(),
+            MessageTemplateType::RegistrationVerification,
+            [
+                "verificationLink" => $this->authConfiguration->verificationLink,
+                "verificationKey" => $user->VerificationKey
+            ]
+        );
+
+        $response->registration = new RegisterResponseMessage();
+        $response->registration->userEmail = $user->Email;
+        $response->registration->message = "User was successfully registered. Please verify your e-mail address.";
 
         return $response;
     }
@@ -146,7 +149,14 @@ class UserService
             throw new Exception("Failed to update EmailAddress in database during verification", 101);
         }
 
-        $this->sendVerifiedEmail($user);
+        $this->messageService->send(
+            new MessageRecipient($user->Email, $user->Name),
+            $this->authConfiguration->getMessageSender(),
+            MessageTemplateType::ConfirmedVerification,
+            [
+                "loginLink" => $this->authConfiguration->loginLink
+            ]
+        );
     }
 
     public function refreshTokens(RefreshTokensRequest $request): TokenResponse
@@ -228,7 +238,15 @@ class UserService
             throw new Exception("Failed to update EmailAddress in database during verification", 101);
         }
 
-        $this->sendForgottenPasswordEmail($user);
+        $this->messageService->send(
+            new MessageRecipient($user->Email, $user->Name),
+            $this->authConfiguration->getMessageSender(),
+            MessageTemplateType::ForgottenPassword,
+            [
+                "resetLink" => $this->authConfiguration->resetLink,
+                "resetKey" => $user->VerificationKey
+            ]
+        );
     }
 
     public function resetPassword(ResetPasswordRequest $request): void
@@ -262,7 +280,7 @@ class UserService
         return UserMapper::mapToUserResponse($user);
     }
 
-    public function sendEmailToVerification(SendEmailRequest $request): void
+    public function sendEmailToVerify(SendEmailRequest $request): void
     {
         $user = $this->userRepository->getByEmail($request->email);
 
@@ -282,86 +300,14 @@ class UserService
             throw new Exception("Failed to update EmailAddress in database during verification", 101);
         }
 
-        $this->sendVerificationEmail($user);
-    }
-
-
-    private function sendVerificationEmail(User $user, string $recipientName = ''): void
-    {
-        $endsWithSlash = str_ends_with($this->authConfiguration->VerificationClientLink, '/');
-        $verificationLink = $this->authConfiguration->VerificationClientLink . ($endsWithSlash ? '' : '/') . $user->VerificationKey;
-
-        $message = new EmailMessage();
-        $message->subject = "E-mail verification";
-        $message->body =
-            "<h2 style=\"margin: 25px auto 10px 15px\">Hello from Word App</h2>
-        <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practicing</p>
-        <h3>Thank you for your registration on our web site.</h3>
-        <p>Please, verify your e-mail addres to fully enjoy our web application.</p>        
-        <p>To verify your e-mail address please use this link by clicking on it: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Verification</a></p>
-        <p>&nbsp;</p>
-        <p style=\"font-size: 0.9em\">If this request wasn't made by you, please disregard or delete this email.</p>";
-        $message->plainMessage = "Hello from Word App\n 
-        Thank you for your registration on our web site.\n
-        Please, verify your e-mail addres to fully enjoy our web application.
-        To verify your e-mail address please use this link: {$verificationLink}\n
-        If this request wasn't made by you, please ignore or delete this email.";
-        $message->recipientAddress = $user->Email;
-        $message->recipientName = $recipientName;
-
-        $this->emailSender->sendMail($message);
-    }
-
-    private function sendVerifiedEmail(User $user, string $recipientName = ''): void
-    {
-        $link = $this->authConfiguration->LoginClientLink;
-
-        $message = new EmailMessage();
-        $message->subject = "E-mail verified";
-        $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px\">Hello from Word App</h2>
-        <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practicing</p>
-        <h3>Thank you for your registration on our web site.</h3>
-        <p>Your e-mail address was successfully verified.</p>
-        <p>We hope you will like our web application for vocabulary learning.</p>
-        <p>You can enjoy our application after logging in at this link:  <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$link}\">Log In</a></p>
-        <p>&nbsp;</p>
-        <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>";
-        $message->plainMessage = "Hello from Word App\n 
-        Thank you for your registration/subscription on our web site.\n
-        Your e-mail address was successfully verified.
-        We hope you will like our web application for vocabulary learning.\n
-        You can enjoy our application after logging in at this link: {$link}\n\n
-        If this email doesn't belong to you, please ignore or delete it.";
-        $message->recipientAddress = $user->Email;
-        $message->recipientName = $recipientName;
-
-        $this->emailSender->sendMail($message);
-    }
-
-    private function sendForgottenPasswordEmail(User $user, string $recipientName = ''): void
-    {
-        $endsWithSlash = str_ends_with($this->authConfiguration->ResetPasswordClientLink, '/');
-        $verificationLink = $this->authConfiguration->ResetPasswordClientLink . ($endsWithSlash ? '' : '/') . $user->VerificationKey;
-
-        $message = new EmailMessage();
-        $message->subject = "Reset password";
-        $message->body =
-            "<h2 style=\"margin: 25px auto 35px 15px\">Hello from Word App</h2>
-        <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practicing</p>
-        <h3>We received a request to reset your password.</h3>
-        <p>Your password has been reset, you can't use it yet.</p>
-        <p>You can reset your password at this link: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{$verificationLink}\">Reset Password</a></p>
-        <p>&nbsp;</p>
-        <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>";
-        $message->plainMessage = "Hello from Word App\n
-        We received a request to reset your password.\n
-        Your password has been reset, you can't use it yet.\n
-        You can reset password at this link: {$verificationLink}\n\n
-        If this email doesn't belong to you, please ignore or delete it.";
-        $message->recipientAddress = $user->Email;
-        $message->recipientName = $recipientName;
-
-        $this->emailSender->sendMail($message);
+        $this->messageService->send(
+            new MessageRecipient($user->Email, $user->Name),
+            $this->authConfiguration->getMessageSender(),
+            MessageTemplateType::RegistrationVerification,
+            [
+                "verificationLink" => $this->authConfiguration->verificationLink,
+                "verificationKey" => $user->VerificationKey
+            ]
+        );
     }
 }

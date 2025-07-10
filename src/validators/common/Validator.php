@@ -2,8 +2,8 @@
 
 namespace validators\common;
 
-use models\validator\InvalidPropertyError;
-use models\validator\ValidationError;
+use validators\common\models\InvalidPropertyError;
+use validators\common\models\ValidationError;
 use WebApiCore\Exceptions\ApplicationException;
 
 abstract class Validator implements IValidator

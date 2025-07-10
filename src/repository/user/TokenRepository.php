@@ -2,7 +2,7 @@
 
 namespace repository\user;
 
-use config\Database;
+use repository\database\Database;
 use DateTime;
 use PDO;
 use utils\Constants;

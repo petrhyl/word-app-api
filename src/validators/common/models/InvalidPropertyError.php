@@ -1,6 +1,6 @@
 <?php
 
-namespace models\validator;
+namespace validators\common\models;
 
 class InvalidPropertyError{
     public string $propertyName;

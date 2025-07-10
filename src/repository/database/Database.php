@@ -2,7 +2,6 @@
 
 namespace repository\database;
 
-use models\DbConfiguration;
 use PDO;
 
 class Database

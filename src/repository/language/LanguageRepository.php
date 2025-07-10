@@ -2,7 +2,7 @@
 
 namespace repository\language;
 
-use config\Database;
+use repository\database\Database;
 use models\domain\language\VocabularyLanguage;
 use PDO;
 

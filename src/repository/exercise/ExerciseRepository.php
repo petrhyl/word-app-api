@@ -2,7 +2,7 @@
 
 namespace repository\exercise;
 
-use config\Database;
+use repository\database\Database;
 use DateTime;
 use Exception;
 use models\domain\exercise\ExerciseResult;

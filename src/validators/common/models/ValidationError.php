@@ -1,8 +1,9 @@
 <?php
 
-namespace models\validator;
+namespace validators\common\models;
 
-class ValidationError{
+class ValidationError
+{
     /**
      * @var string[]
      */

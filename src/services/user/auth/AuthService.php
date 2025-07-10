@@ -11,7 +11,7 @@ use models\domain\user\User;
 use repository\user\UserRepository;
 use repository\user\TokenRepository;
 use services\EncryptionService;
-use WebApiCore\App;
+use WebApiCore\Builder\App;
 
 class AuthService
 {
