@@ -47,7 +47,7 @@ class MessageTemplateAccessor
                     <p style=\"margin: 0px auto 35px 15px;font-size: 1.2em;font-weight: 600\">Vocabulary practicing</p>
                     <h3>We received a request to reset your password.</h3>
                     <p>Your password has been reset, you can't use it yet.</p>
-                    <p>You can reset your password at this link: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{*resetLink*}{*resetKey*}\">Reset Password</a></p>
+                    <p>You can reset your password at this link: <a style=\"color: #004745; font-weight: 600; font-size: 1.2em\" href=\"{*resetLink*}/{*resetKey*}\">Reset Password</a></p>
                     <p>&nbsp;</p>
                     <p style=\"font-size: 0.9em\">If this email doesn't belong to you, please ignore or delete it.</p>",
                     $variables
