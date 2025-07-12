@@ -229,6 +229,10 @@ class UserService
             throw new ApplicationException("User with provided e-mail was not found", 404);
         }
 
+        if ($user->IsVerified === false) {
+            throw new ApplicationException("User's e-mail address is not verified yet", 403);
+        }
+
         $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
         $user->UpdatedAt = new DateTime();
 
