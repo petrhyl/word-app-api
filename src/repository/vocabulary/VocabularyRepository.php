@@ -148,11 +148,12 @@ class VocabularyRepository
     public function updateVocabularyItem(VocabularyItem $vocabularyItem): bool
     {
         $command = "UPDATE Wordapp_Vocabularies 
-        SET Translations = :trans, IsLearned = :lear, CorrectAnswers = :cor, UpdatedAt = :up 
+        SET Value = :val, Translations = :trans, IsLearned = :lear, CorrectAnswers = :cor, UpdatedAt = :up 
         WHERE Id = :id";
 
         $stmt = $this->conn->prepare($command);
 
+        $stmt->bindValue(':val', $vocabularyItem->Value, PDO::PARAM_STR);
         $stmt->bindValue(':trans', $vocabularyItem->Translations, PDO::PARAM_STR);
         $stmt->bindValue(':lear', $vocabularyItem->IsLearned, PDO::PARAM_BOOL);
         $stmt->bindValue(':cor', $vocabularyItem->CorrectAnswers, PDO::PARAM_INT);

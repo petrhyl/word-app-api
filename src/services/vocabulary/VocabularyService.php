@@ -98,7 +98,7 @@ class VocabularyService
     {
         $existingItem = $this->vocabularyRepository->getVocabularyItem($id);
 
-        if ($existingItem === null) {
+        if ($existingItem === null || $existingItem->VocabularyLanguageId !== $request->languageId) {
             throw new ApplicationException("Vocabulary item not found", 404);
         }
 
@@ -108,10 +108,10 @@ class VocabularyService
             throw new ApplicationException("Vocabulary item not found", 404);
         }
 
-        $language = $this->languageRepository->getVocabularyLanguageById($request->languageId);
+        $existingWord = $this->vocabularyRepository->getUserVocabularyItem($userId, $request->languageId, $request->word);
 
-        if ($language === null || $language->UserId !== $userId) {
-            throw new ApplicationException("User vocabulary language not found", 404);
+        if ($existingWord !== null && $existingItem->Id !== $existingWord->Id) {
+            throw new ApplicationException("Vocabulary item with the same word already exists", 409);
         }
 
         $item = VocabularyMapper::mapUpdateRequestToVocabularyItem($request, $existingItem);
