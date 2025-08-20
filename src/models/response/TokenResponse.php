@@ -7,5 +7,5 @@ class TokenResponse
     public string $accessToken;
     public int $accessTokenExpiresIn;
     public string $refreshToken;
-    public int $refreshTokenExpireIn;
+    public int $refreshTokenExpiresIn;
 }

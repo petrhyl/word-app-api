@@ -23,7 +23,7 @@ RUN a2enmod headers
 RUN echo "<IfModule mod_headers.c>\n\
 Header set Access-Control-Allow-Origin \"*\"\n\
 Header set Access-Control-Allow-Methods \"GET, POST, PUT, DELETE, OPTIONS\"\n\
-Header set Access-Control-Allow-Headers \"Content-Type, Authorization\"\n\
+Header set Access-Control-Allow-Headers \"Content-Type, Authorization, x-api-key\"\n\
 Header set Access-Control-Allow-Credentials \"true\"\n\
 </IfModule>" >> /etc/apache2/apache2.conf
 # enable .htaccess file to rewrite urls

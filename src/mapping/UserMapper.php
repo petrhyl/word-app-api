@@ -46,7 +46,7 @@ class UserMapper
         $response->accessToken = $user->AccessToken->Value;
         $response->accessTokenExpiresIn = $user->AccessToken->ExpireIn;
         $response->refreshToken = $user->RefreshToken->Value;
-        $response->refreshTokenExpireIn = $user->RefreshToken->ExpireIn;
+        $response->refreshTokenExpiresIn = $user->RefreshToken->ExpireIn;
 
         return $response;
     }

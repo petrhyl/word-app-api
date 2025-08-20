@@ -1,0 +1,88 @@
+name: Deploy PHP API via FTPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Get composer cache directory
+        id: composer-cache
+        working-directory: ./src
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql
+          coverage: none
+
+      - name: Install Composer deps from src folder
+        run: |
+          cd src
+          composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Ensure logs directory exists via FTPS
+        continue-on-error: true
+        working-directory: ./
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} sftp://${{ secrets.FTP_SERVER }}:2222;   
+            cls word-app/api || mkdir -p word-app/api;
+            cd word-app/api;
+            cls logs || mkdir logs;
+            bye;
+            "
+
+      - name: Get file with settings from remote
+        continue-on-error: true
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} sftp://${{ secrets.FTP_SERVER }}:2222;
+            get word-app/api/src/config/settings/.otherSettings.php -o .otherSettings.php;
+            bye;
+            "
+
+      - name: Remove previous files and upload new files via FTPS
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} sftp://${{ secrets.FTP_SERVER }}:2222;
+            put index.php -o word-app/api/index.php
+            put .htaccess -o word-app/api/.htaccess
+            mirror -R --delete src word-app/api/src
+            bye;
+            "
+
+      - name: Upload preserved file with settings
+        continue-on-error: true
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} sftp://${{ secrets.FTP_SERVER }}:2222;
+            put .otherSettings.php -o word-app/api/src/config/settings/.otherSettings.php
+            bye;
+            "
