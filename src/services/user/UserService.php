@@ -5,8 +5,6 @@ namespace services\user;
 use DateTime;
 use Exception;
 use mapping\UserMapper;
-use models\domain\user\AuthToken;
-use models\domain\user\User;
 use services\user\auth\configuration\AuthConfiguration;
 use models\request\ChangePasswordRequest;
 use models\request\ForgotPasswordRequest;
@@ -62,6 +60,16 @@ class UserService
 
         $user = $this->userRepository->getByEmail($request->email);
 
+        $passwordHash = 'a';
+
+        if ($user !== null) {
+            $passwordHash = $user->PasswordHash ?? 'a';
+        }
+
+        if ($this->authService->isUserPasswordValid($passwordHash, $request->password) === false) {
+            throw new ApplicationException("Invalid user's e-mail or password", 400);
+        }
+
         if ($user === null) {
             throw new ApplicationException("Invalid user's e-mail or password", 400);
         }
@@ -74,13 +82,9 @@ class UserService
             throw new ApplicationException("User's e-mail address is not verified yet", 403);
         }
 
-        $user = $this->authService->login($user, $request->password);
+        $tokenResponse = $this->authService->generateAuthTokens($user);
 
-        if ($user === null) {
-            throw new ApplicationException("Invalid user's e-mail or password", 400);
-        }
-
-        return UserMapper::mapToAuthResponse($user);
+        return UserMapper::mapToAuthResponse($user, $tokenResponse);
     }
 
     public function logout(LogoutRequest $request): void
@@ -91,10 +95,7 @@ class UserService
             throw new ApplicationException("Not allowed to log out user with provided ID", 403);
         }
 
-        $user->RefreshToken = new AuthToken();
-        $user->RefreshToken->Value = $request->refreshToken;
-
-        $this->authService->logout($user);
+        $this->authService->invalidateRefreshToken($user->Id, $request->refreshToken);
     }
 
 
@@ -106,14 +107,17 @@ class UserService
             throw new ApplicationException("User with provided e-mail is already registered.", 400);
         }
 
-        $user = UserMapper::mapRegisterRequestToUser($request);
+        $passwordHash = $this->authService->hashPassword($request->password);
 
-        $user->IsVerified = false;
+        $user = UserMapper::mapRegisterRequestToUser($request, $passwordHash);
+
         $user->VerificationKey = $this->authService->createVerificationKey($user->Email);
 
-        $user = $this->authService->registerValidUser($user, $request->password);
+        $user = $this->userRepository->create($user);
 
-        $response = new RegisterResponse();
+        if ($user === null) {
+            throw new ApplicationException("Failed to create user", 500);
+        }
 
         $this->messageService->send(
             new MessageRecipient($user->Email, $user->Name),
@@ -125,6 +129,7 @@ class UserService
             ]
         );
 
+        $response = new RegisterResponse();
         $response->registration = new RegisterResponseMessage();
         $response->registration->userEmail = $user->Email;
         $response->registration->message = "User was successfully registered. Please verify your e-mail address.";
@@ -167,41 +172,13 @@ class UserService
             throw new ApplicationException("User is already authorized", 400);
         }
 
-        $areTokensValid = $this->authService->areTokensValid($request->refreshToken, $request->accessToken);
+        $response = $this->authService->refreshTokens($request->refreshToken);
 
-        if (!$areTokensValid) {
+        if (!$response) {
             throw new ApplicationException("Not able to authorize user", 401);
         }
 
-        $userId = filter_var($this->authService->getClaimFromToken(AuthService::USER_ID_CLAIM, $request->refreshToken), FILTER_VALIDATE_INT);
-
-        if ($userId === false) {
-            throw new ApplicationException("Not able to authorize user", 401);
-        }
-
-        $user = $this->userRepository->getById($userId);
-
-        if ($user === null) {
-            throw new ApplicationException("Not able to authorize user", 401);
-        }
-
-        if ($user->VerificationKey !== null) {
-            throw new ApplicationException("Invalid user's credentials", 403);
-        }
-
-        $user->AccessToken = new AuthToken();
-        $user->AccessToken->Value = $request->accessToken;
-
-        $user->RefreshToken = new AuthToken();
-        $user->RefreshToken->Value = $request->refreshToken;
-
-        $user = $this->authService->refreshTokens($user);
-
-        if ($user === null) {
-            throw new ApplicationException("Not able to authorize user", 401);
-        }
-
-        return UserMapper::mapToTokenResponse($user);
+        return $response;
     }
 
     public function changePassword(ChangePasswordRequest $request): AuthResponse
@@ -212,13 +189,13 @@ class UserService
             throw new ApplicationException("User was not found", 404);
         }
 
-        if ($this->authService->isUserPasswordValid($user, $request->previousPassword) === false) {
+        if ($this->authService->isUserPasswordValid($user->PasswordHash, $request->previousPassword) === false) {
             throw new ApplicationException("Invalid user's password", 400);
         }
 
-        $user = $this->authService->changePassword($user, $request->newPassword);
+        $tokenResponse = $this->authService->changePassword($user, $request->newPassword);
 
-        return UserMapper::mapToAuthResponse($user);
+        return UserMapper::mapToAuthResponse($user, $tokenResponse);
     }
 
     public function forgetPassword(ForgotPasswordRequest $request): void

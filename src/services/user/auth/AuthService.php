@@ -6,8 +6,10 @@ use config\ErrorHandler;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use models\domain\user\AuthToken;
+use models\response\AuthToken;
 use models\domain\user\User;
+use models\domain\user\UserLogin;
+use models\response\TokenResponse;
 use repository\user\UserRepository;
 use repository\user\TokenRepository;
 use services\EncryptionService;
@@ -47,128 +49,80 @@ class AuthService
         return App::$request->user->id;
     }
 
-    public function registerValidUser(User $user, string $password): User
+    public function getValidTokenEntity(string $refreshToken): ?UserLogin
     {
-        $user->PasswordHash = password_hash($password, PASSWORD_DEFAULT);
+        $tokenValueAndBase = $this->unwireRefreshToken($refreshToken);
 
-        $user = $this->userRepository->create($user);
-
-        if ($user === null) {
-            throw new Exception("Failed to create user in database", 101);
-        }
-
-        if ($user->IsVerified) {
-            return $this->createTokensAndAssignThemToUser($user);
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return \models\domain\user\User|null returns null if password is not valid
-     */
-    public function login(User $user, string $password): ?User
-    {
-        if (!$this->isUserPasswordValid($user, $password)) {
+        if ($tokenValueAndBase === null) {
             return null;
         }
 
-        return $this->createTokensAndAssignThemToUser($user);
+        $refreshTokenEntity = $this->tokenRepository->getById($tokenValueAndBase[0]);
+
+        if ($refreshTokenEntity === null) {
+            return null;
+        }
+
+        $refreshTokenHash = $this->encryption->hashWithSecret($tokenValueAndBase[1], false);
+
+        if ($refreshTokenHash !== $refreshTokenEntity->TokenHash) {
+            return null;
+        }
+
+        return $refreshTokenEntity;
+    }
+
+    public function hashPassword(string $password): string {
+        return password_hash($password, PASSWORD_DEFAULT);
     }
 
     /**
-     * @return bool returns `false` if refresh token is not found or if failed to delete otherwise returns `true`
+     * @return \models\response\TokenResponse
      */
-    public function logout(User $user): bool
+    public function generateAuthTokens(User $user): TokenResponse
     {
-        if (empty($user->RefreshToken)) {
-            throw new Exception("Missing refresh token of the logging out user", 101);
-        }
+        $accessToken = $this->createAccessToken($user);
+        $refreshToken = $this->createRefreshToken($user);
 
-        $hashedToken = $this->encryption->hashWithSecret($user->RefreshToken->Value, false);
-
-        $exist = $this->tokenRepository->exists($hashedToken, $user->Id);
-
-        if (!$exist) {
-            $ex = new Exception("Logging-out user's refresh token [ $hashedToken ] was not found in database", 101);
-            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
-
-            return false;
-        }
-
-        $result = $this->tokenRepository->delete($hashedToken, $user->Id);
-
-        if (!$result) {
-            $ex = new Exception("Failed to delete refresh token [ $hashedToken ] from database", 101);
-            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
-
-            return false;
-        }
-
-        return true;
+        return new TokenResponse($accessToken, $refreshToken);
     }
 
     /**
-     * @return \models\domain\user\User|null returns `null` if refresh token is not stored in database with user id
+     * @return \models\response\TokenResponse|null returns `null` if refresh token is not stored in database with user id
      * @throws \Exception if failed to delete refresh token from database
      */
-    public function refreshTokens(User $user): ?User
+    public function refreshTokens(string $refreshToken): ?TokenResponse
     {
-        $hashedToken = $this->encryption->hashWithSecret($user->RefreshToken->Value, false);
+        $tokenEntity = $this->getValidTokenEntity($refreshToken);
 
-        $result = $this->tokenRepository->exists($hashedToken, $user->Id);
-
-        if ($result === false) {
+        if ($tokenEntity === null) {
             return null;
         }
 
-        $result = $this->tokenRepository->delete($hashedToken, $user->Id);
+        $user = $this->userRepository->getById($tokenEntity->UserId);
+
+        if ($user === null || $user->VerificationKey !== null) {
+            return null;
+        }
+
+        $result = $this->tokenRepository->delete($tokenEntity->Id, $user->Id);
 
         if ($result === false) {
-            throw new Exception("Failed to delete refresh token [ $hashedToken ] from database", 101);
+            throw new Exception("Failed to delete refresh token [ {$tokenEntity->Id} ] from database", 101);
         }
 
-        return $this->createTokensAndAssignThemToUser($user);
-    }
-
-    public function areTokensValid(string $refreshToken, string $token): bool
-    {
-        $claims = $this->tokenService->decodeDataFromToken($token);
-
-        if ($claims === null) {
-            return false;
-        }
-
-        $userIdFromRefreshToken = $this->getClaimFromToken(self::USER_ID_CLAIM, $refreshToken);
-
-        if ($userIdFromRefreshToken === null) {
-            return false;
-        }
-
-        $userIdFromToken = filter_var($claims[self::USER_ID_CLAIM], FILTER_VALIDATE_INT);
-
-        if ($userIdFromToken === false) {
-            return false;
-        }
-
-        if ($userIdFromRefreshToken !== $userIdFromToken) {
-            return false;
-        }
-
-        return true;
+        return $this->generateAuthTokens($user);
     }
 
     /**
-     * @return \models\domain\user\User user object with auth tokens
+     * @return \models\response\TokenResponse newly created auth tokens
      * @throws \Exception if failed to update user or delete user's tokens
      */
-    public function changePassword(User $user, $newPassword): User
+    public function changePassword(User $user, $newPassword): TokenResponse
     {
         $user = $this->createNewPassword($user, $newPassword);
 
-        $user = $this->createTokensAndAssignThemToUser($user);
-
-        return $user;
+        return $this->generateAuthTokens($user);
     }
 
     /**
@@ -229,19 +183,47 @@ class AuthService
         return $this->encryption->hashWithSecret($userEmail . $additionalRandomString . $now->format('c'), false);
     }
 
-    public function isUserPasswordValid(User $user, string $password): bool
+    public function isUserPasswordValid(string $passwordHash, string $password): bool
     {
-        return password_verify($password, $user->PasswordHash);
+        return password_verify($password, $passwordHash);
     }
 
-
-    private function createTokensAndAssignThemToUser(User $user): User
+    /**
+     * @return bool returns `false` if refresh token is not found or if failed to delete otherwise returns `true`
+     */
+    public function invalidateRefreshToken(int $userId, string $refreshToken): bool
     {
-        $currentDate = new DateTime();
-        $currentDate->setTimezone(new DateTimeZone('UTC'));
-        $currentTimestampInSeconds = $currentDate->getTimestamp();
+        $tokenEntity = $this->getValidTokenEntity($refreshToken);
 
+        if ($tokenEntity === null) {
+            $ex = new Exception("Logging-out refresh token [ {$refreshToken} ] of user ID [ {$userId} ] was not found in database", 101);
+            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
 
+            return false;
+        }
+
+        if ($tokenEntity->UserId !== $userId) {
+            $ex = new Exception("Logging-out refresh token ID [ {$tokenEntity->Id} ] of user ID [ {$tokenEntity->UserId} ] does not match authenticated user ID [ {$userId} ]", 101);
+            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
+
+            return false;
+        }
+
+        $result = $this->tokenRepository->delete($tokenEntity->Id);
+
+        if (!$result) {
+            $ex = new Exception("Failed to delete refresh token [ {$tokenEntity->Id} ] from database", 101);
+            ErrorHandler::logErrors([ErrorHandler::formatExceptionToLog($ex)]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function createAccessToken(User $user): AuthToken
+    {
+        $currentTimestampInSeconds = $this->getCurrentTimestampInSeconds();
         $secondsToExpire = $currentTimestampInSeconds + 1200;
         $expiryTimestamp = $secondsToExpire * 1000;
 
@@ -251,39 +233,67 @@ class AuthService
             self::EXPIRE_IN_CLAIM => $secondsToExpire
         ];
 
-        $token = $this->tokenService->createToken($claims);
+        $token = $this->tokenService->generateJwtToken($claims);
 
-        $accessToken = new AuthToken();
-        $accessToken->Value = $token;
-        $accessToken->ExpireIn = $expiryTimestamp;
+        return new AuthToken($token, $expiryTimestamp);
+    }
 
+    private function createRefreshToken(User $user): AuthToken
+    {
+        $refreshTokenBase = $this->tokenService->generateRefreshToken();
+
+        $hashedToken = $this->encryption->hashWithSecret($refreshTokenBase, false);
+
+        $currentTimestampInSeconds = $this->getCurrentTimestampInSeconds();
         $secondsToExpire = $currentTimestampInSeconds + 15_552_000;
-        $expiryTimestamp = $secondsToExpire * 1000;
 
-        $claims = [
-            self::USER_ID_CLAIM => $user->Id,
-            self::EXPIRE_IN_CLAIM => $secondsToExpire
-        ];
+        $entity = new UserLogin();
+        $entity->UserId = $user->Id;
+        $entity->TokenHash = $hashedToken;
+        $entity->setExpiresIn(new DateTime("@$secondsToExpire"));
 
-        $refreshToken = $this->tokenService->createToken($claims);
+        $entity = $this->tokenRepository->store($entity);
 
-        $hashedToken = $this->encryption->hashWithSecret($refreshToken, false);
-
-        $result = $this->tokenRepository->store(
-            $user->Id,
-            $hashedToken,
-            new DateTime("@$secondsToExpire")
-        );
-
-        if ($result === false) {
+        if ($entity === null) {
             throw new Exception("Failed to store refresh token in database.");
         }
 
-        $user->AccessToken = $accessToken;
-        $user->RefreshToken = new AuthToken();
-        $user->RefreshToken->Value = $refreshToken;
-        $user->RefreshToken->ExpireIn = $expiryTimestamp;
+        $refreshToken = $this->wireRefreshToken($entity->Id, $refreshTokenBase);
 
-        return $user;
+        return new AuthToken($refreshToken, $secondsToExpire * 1000);
+    }
+
+    private function getCurrentTimestampInSeconds(): int
+    {
+        return (new DateTime())->setTimezone(new DateTimeZone('UTC'))->getTimestamp();
+    }
+
+    private function wireRefreshToken(int $tokenId, string $refreshTokenBase): string
+    {
+        return "{$tokenId}.{$refreshTokenBase}";
+    }
+
+    /**
+     * @return array{0: int, 1: string}|null - Token ID as first item and base as second one of the array
+     */
+    private function unwireRefreshToken(string $wiredToken): array|null
+    {
+        $tokenIdAndBase = explode('.', $wiredToken);
+
+        if (count($tokenIdAndBase) < 2) {
+            return null;
+        }
+
+        [$tokenId, $refreshTokenBase] = $tokenIdAndBase;
+
+        if (empty($refreshTokenBase)) {
+            return null;
+        }
+
+        if (filter_var($tokenId, FILTER_VALIDATE_INT) === false) {
+            return null;
+        }
+
+        return [(int)$tokenId, $refreshTokenBase];
     }
 }
