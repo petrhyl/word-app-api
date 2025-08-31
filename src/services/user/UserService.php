@@ -166,12 +166,6 @@ class UserService
 
     public function refreshTokens(RefreshTokensRequest $request): TokenResponse
     {
-        $userId = $this->authService->getClaimFromToken(AuthService::USER_ID_CLAIM, $request->accessToken);
-
-        if ($userId !== null) {
-            throw new ApplicationException("User is already authorized", 400);
-        }
-
         $response = $this->authService->refreshTokens($request->refreshToken);
 
         if (!$response) {
