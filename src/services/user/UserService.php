@@ -166,13 +166,23 @@ class UserService
 
     public function refreshTokens(RefreshTokensRequest $request): TokenResponse
     {
-        $response = $this->authService->refreshTokens($request->refreshToken);
+        $storedToken = $this->authService->getValidTokenEntity($request->refreshToken);
 
-        if (!$response) {
+        if (!$storedToken) {
             throw new ApplicationException("Not able to authorize user", 401);
         }
 
-        return $response;
+        $user = $this->userRepository->getById($storedToken->UserId);
+
+        if (!$user || $user->VerificationKey !== null) {
+            throw new ApplicationException("Not able to authorize user", 401);
+        }
+
+        $this->authService->deleteRefreshToken($user->Id, $storedToken->Id);
+
+        $newTokens = $this->authService->generateAuthTokens($user);
+
+        return $newTokens;
     }
 
     public function changePassword(ChangePasswordRequest $request): AuthResponse

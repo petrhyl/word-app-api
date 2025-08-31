@@ -4,6 +4,8 @@ namespace models\response;
 
 class TokenResponse
 {
-    public AuthToken $accessToken;
-    public AuthToken $refreshToken;
+    public function __construct(
+        public AuthToken $accessToken,
+        public AuthToken $refreshToken
+    ) {}
 }

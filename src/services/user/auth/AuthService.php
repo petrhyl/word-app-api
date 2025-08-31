@@ -88,33 +88,6 @@ class AuthService
     }
 
     /**
-     * @return \models\response\TokenResponse|null returns `null` if refresh token is not stored in database with user id
-     * @throws \Exception if failed to delete refresh token from database
-     */
-    public function refreshTokens(string $refreshToken): ?TokenResponse
-    {
-        $tokenEntity = $this->getValidTokenEntity($refreshToken);
-
-        if ($tokenEntity === null) {
-            return null;
-        }
-
-        $user = $this->userRepository->getById($tokenEntity->UserId);
-
-        if ($user === null || $user->VerificationKey !== null) {
-            return null;
-        }
-
-        $result = $this->tokenRepository->delete($tokenEntity->Id, $user->Id);
-
-        if ($result === false) {
-            throw new Exception("Failed to delete refresh token [ {$tokenEntity->Id} ] from database", 101);
-        }
-
-        return $this->generateAuthTokens($user);
-    }
-
-    /**
      * @return \models\response\TokenResponse newly created auth tokens
      * @throws \Exception if failed to update user or delete user's tokens
      */
@@ -130,7 +103,7 @@ class AuthService
      */
     public function createNewPassword(User $user, $newPassword): User
     {
-        $user->PasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $user->PasswordHash = $this->hashPassword($newPassword);
         $user->VerificationKey = null;
         $user->UpdatedAt = new DateTime();
 
@@ -220,6 +193,15 @@ class AuthService
 
         return true;
     }
+
+    public function deleteRefreshToken(int $userId, int $tokenId): void {
+        $result = $this->tokenRepository->delete($tokenId, $userId);
+
+        if ($result === false) {
+            throw new Exception("Failed to delete refresh token [ {$tokenId} ] from database", 101);
+        }
+    }
+
 
     private function createAccessToken(User $user): AuthToken
     {

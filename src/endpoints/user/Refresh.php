@@ -14,6 +14,6 @@ class Refresh extends BaseEndpoint
     {
         $response = $this->userService->refreshTokens($payload);
 
-        $this->respondAndDie(["auth" => ["token" => $response]]);
+        $this->respondAndDie(["authToken" => $response]);
     }
 }

@@ -20,7 +20,7 @@ class TokenRepository
 
     public function getById(int $tokenId): ?UserLogin
     {
-        $cmd = "SELECT TokenHash, ExpiresIn FROM Wordapp_UserLogins WHERE Id = :id";
+        $cmd = "SELECT Id, UserId, TokenHash, ExpiresIn, CreatedAt FROM Wordapp_UserLogins WHERE Id = :id";
 
         $stmt = $this->conn->prepare($cmd);
 
