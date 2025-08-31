@@ -5,5 +5,5 @@ namespace models\response;
 class AuthResponse
 {    
     public UserResponse $user;
-    public TokenResponse $token;
+    public TokenResponse $authToken;
 }

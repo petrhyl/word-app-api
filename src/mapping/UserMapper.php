@@ -10,43 +10,34 @@ use models\response\UserResponse;
 
 class UserMapper
 {
-    public static function mapToAuthResponse(User $user): AuthResponse
+    public static function mapToAuthResponse(User $user, TokenResponse $tokenResponse): AuthResponse
     {
         $response = new AuthResponse();
         $response->user = self::mapToUserResponse($user);
-        $response->token = self::mapToTokenResponse($user);
+        $response->authToken = $tokenResponse;
 
         return $response;
     }
 
-    public static function mapRegisterRequestToUser(RegisterRequest $request): User
+    public static function mapRegisterRequestToUser(RegisterRequest $request, string $passwordHash): User
     {
         $user = new User();
         $user->Email = $request->email;
         $user->Name = $request->name;
+        $user->PasswordHash = $passwordHash;
+        $user->IsVerified = false;
         $user->Language = $request->language;
 
         return $user;
     }
 
-    public static function mapToUserResponse(User $user) : UserResponse
+    public static function mapToUserResponse(User $user): UserResponse
     {
         $response = new UserResponse();
         $response->id = $user->Id;
         $response->name = $user->Name;
         $response->email = $user->Email;
         $response->isVerified = $user->IsVerified;
-
-        return $response;   
-    }
-
-    public static function mapToTokenResponse(User $user) : TokenResponse
-    {
-        $response = new TokenResponse();
-        $response->accessToken = $user->AccessToken->Value;
-        $response->accessTokenExpiresIn = $user->AccessToken->ExpireIn;
-        $response->refreshToken = $user->RefreshToken->Value;
-        $response->refreshTokenExpiresIn = $user->RefreshToken->ExpireIn;
 
         return $response;
     }

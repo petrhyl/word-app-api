@@ -10,12 +10,15 @@ class User extends DomainEntity
 {
     public string $Email;
     public string $Name;
-    public ?string $PasswordHash = null;
+    public string $PasswordHash;
     public string $Language;
     public bool $IsVerified;
     public ?string $VerificationKey = null;
-    public ?AuthToken $AccessToken = null;
-    public ?AuthToken $RefreshToken = null;
+
+    /**
+     * @var UserLogin[]|null
+     */
+    public ?array $Logins = [];
     public DateTime $UpdatedAt;
     
     public function mysqlFormattedUpdatedAt(): string

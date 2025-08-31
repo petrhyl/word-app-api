@@ -21,7 +21,7 @@ CREATE TABLE Wordapp_UserLogins(
     ExpiresIn DATETIME NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (Id),
-    UNIQUE (TokenHash, UserId)
+    INDEX idx_logins_userid (UserId)
 );
 DROP TABLE IF EXISTS Wordapp_VocabularyLanguages;
 CREATE TABLE Wordapp_VocabularyLanguages(

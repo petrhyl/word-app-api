@@ -10,7 +10,7 @@ class TokenService
     {
     }
 
-    public function createToken(array $claims): string
+    public function generateJwtToken(array $claims): string
     {
         $header = json_encode([
             'typ' => 'JWT',
@@ -28,6 +28,10 @@ class TokenService
         $signiture = $this->encryption->base64urlEncode($signiture);
 
         return $header . '.' . $stringyfiedClaims . '.' . $signiture;
+    }
+
+    public function generateRefreshToken() : string {
+        return $this->encryption->base64urlEncode(random_bytes(64));
     }
 
     public function decodeDataFromToken(string $token): ?array
